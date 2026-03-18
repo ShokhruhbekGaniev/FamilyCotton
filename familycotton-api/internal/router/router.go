@@ -12,6 +12,10 @@ func New(
 	authService *service.AuthService,
 	authHandler *handler.AuthHandler,
 	userHandler *handler.UserHandler,
+	supplierHandler *handler.SupplierHandler,
+	clientHandler *handler.ClientHandler,
+	creditorHandler *handler.CreditorHandler,
+	productHandler *handler.ProductHandler,
 ) *chi.Mux {
 	r := chi.NewRouter()
 
@@ -19,7 +23,7 @@ func New(
 	r.Use(middleware.Logging)
 
 	r.Route("/api/v1", func(r chi.Router) {
-		// Public routes (no auth required).
+		// Public routes.
 		r.Post("/auth/login", authHandler.Login)
 		r.Post("/auth/refresh", authHandler.Refresh)
 
@@ -37,6 +41,52 @@ func New(
 				r.Post("/", userHandler.Create)
 				r.Put("/{id}", userHandler.Update)
 				r.Delete("/{id}", userHandler.Delete)
+			})
+
+			// Suppliers (employee: read only, owner: full CRUD).
+			r.Route("/suppliers", func(r chi.Router) {
+				r.Get("/", supplierHandler.List)
+				r.Get("/{id}", supplierHandler.GetByID)
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.RequireRole("owner"))
+					r.Post("/", supplierHandler.Create)
+					r.Put("/{id}", supplierHandler.Update)
+					r.Delete("/{id}", supplierHandler.Delete)
+				})
+			})
+
+			// Clients (employee + owner, delete owner only).
+			r.Route("/clients", func(r chi.Router) {
+				r.Get("/", clientHandler.List)
+				r.Get("/{id}", clientHandler.GetByID)
+				r.Post("/", clientHandler.Create)
+				r.Put("/{id}", clientHandler.Update)
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.RequireRole("owner"))
+					r.Delete("/{id}", clientHandler.Delete)
+				})
+			})
+
+			// Creditors (owner only).
+			r.Route("/creditors", func(r chi.Router) {
+				r.Use(middleware.RequireRole("owner"))
+				r.Get("/", creditorHandler.List)
+				r.Get("/{id}", creditorHandler.GetByID)
+				r.Post("/", creditorHandler.Create)
+				r.Put("/{id}", creditorHandler.Update)
+				r.Delete("/{id}", creditorHandler.Delete)
+			})
+
+			// Products (employee: read + create, owner: full CRUD).
+			r.Route("/products", func(r chi.Router) {
+				r.Get("/", productHandler.List)
+				r.Get("/{id}", productHandler.GetByID)
+				r.Post("/", productHandler.Create)
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.RequireRole("owner"))
+					r.Put("/{id}", productHandler.Update)
+					r.Delete("/{id}", productHandler.Delete)
+				})
 			})
 		})
 	})

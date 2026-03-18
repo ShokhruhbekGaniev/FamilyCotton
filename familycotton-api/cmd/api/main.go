@@ -59,7 +59,26 @@ func main() {
 	authHandler := handler.NewAuthHandler(authService, userService)
 	userHandler := handler.NewUserHandler(userService)
 
-	r := router.New(authService, authHandler, userHandler)
+	// Phase 2 repositories.
+	supplierRepo := repository.NewSupplierRepository(pool)
+	clientRepo := repository.NewClientRepository(pool)
+	creditorRepo := repository.NewCreditorRepository(pool)
+	productRepo := repository.NewProductRepository(pool)
+
+	// Phase 2 services.
+	supplierService := service.NewSupplierService(supplierRepo)
+	clientService := service.NewClientService(clientRepo)
+	creditorService := service.NewCreditorService(creditorRepo)
+	productService := service.NewProductService(productRepo)
+
+	// Phase 2 handlers.
+	supplierHandler := handler.NewSupplierHandler(supplierService)
+	clientHandler := handler.NewClientHandler(clientService)
+	creditorHandler := handler.NewCreditorHandler(creditorService)
+	productHandler := handler.NewProductHandler(productService)
+
+	r := router.New(authService, authHandler, userHandler,
+		supplierHandler, clientHandler, creditorHandler, productHandler)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.ServerPort),
