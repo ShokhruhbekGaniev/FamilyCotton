@@ -22,12 +22,12 @@ func New(
 		// Public routes (no auth required).
 		r.Post("/auth/login", authHandler.Login)
 		r.Post("/auth/refresh", authHandler.Refresh)
-		r.Post("/auth/logout", authHandler.Logout)
 
 		// Protected routes.
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Auth(authService))
 
+			r.Post("/auth/logout", authHandler.Logout)
 			r.Get("/auth/me", authHandler.Me)
 
 			// Users (owner only).

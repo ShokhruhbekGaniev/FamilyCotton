@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -30,8 +32,11 @@ func (r *TokenRepository) ExistsByHash(ctx context.Context, tokenHash string) (b
 		`SELECT user_id FROM refresh_tokens WHERE token_hash = $1 AND expires_at > NOW()`,
 		tokenHash,
 	).Scan(&userID)
-	if err != nil {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return false, uuid.Nil, nil
+	}
+	if err != nil {
+		return false, uuid.Nil, err
 	}
 	return true, userID, nil
 }

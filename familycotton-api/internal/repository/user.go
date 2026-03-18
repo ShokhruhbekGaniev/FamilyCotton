@@ -21,11 +21,12 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 }
 
 func (r *UserRepository) Create(ctx context.Context, u *model.User) error {
-	_, err := r.db.Exec(ctx,
+	err := r.db.QueryRow(ctx,
 		`INSERT INTO users (id, name, login, password_hash, role)
-		 VALUES ($1, $2, $3, $4, $5)`,
+		 VALUES ($1, $2, $3, $4, $5)
+		 RETURNING created_at, updated_at`,
 		u.ID, u.Name, u.Login, u.PasswordHash, u.Role,
-	)
+	).Scan(&u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		if isDuplicateKey(err) {
 			return model.NewAppError(model.ErrConflict, "login already exists")
@@ -81,15 +82,22 @@ func (r *UserRepository) List(ctx context.Context) ([]model.User, error) {
 }
 
 func (r *UserRepository) Update(ctx context.Context, u *model.User) error {
-	_, err := r.db.Exec(ctx,
+	err := r.db.QueryRow(ctx,
 		`UPDATE users SET name=$1, login=$2, password_hash=$3, role=$4, updated_at=NOW()
-		 WHERE id=$5 AND is_deleted = false`,
+		 WHERE id=$5 AND is_deleted = false
+		 RETURNING updated_at`,
 		u.Name, u.Login, u.PasswordHash, u.Role, u.ID,
-	)
-	if err != nil && isDuplicateKey(err) {
-		return model.NewAppError(model.ErrConflict, "login already exists")
+	).Scan(&u.UpdatedAt)
+	if err != nil {
+		if isDuplicateKey(err) {
+			return model.NewAppError(model.ErrConflict, "login already exists")
+		}
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.NewAppError(model.ErrNotFound, "user not found")
+		}
+		return err
 	}
-	return err
+	return nil
 }
 
 func (r *UserRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
