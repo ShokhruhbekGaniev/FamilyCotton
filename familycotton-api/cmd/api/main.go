@@ -118,11 +118,23 @@ func main() {
 	stockTransferHandler := handler.NewStockTransferHandler(stockTransferService)
 	inventoryCheckHandler := handler.NewInventoryCheckHandler(inventoryCheckService)
 
+	// Phase 5 repositories.
+	dashboardRepo := repository.NewDashboardRepository(pool)
+
+	// Phase 5 services.
+	safeService := service.NewSafeService(pool, safeTransactionRepo, ownerDebtRepo)
+	dashboardService := service.NewDashboardService(dashboardRepo)
+
+	// Phase 5 handlers.
+	safeHandler := handler.NewSafeHandler(safeService)
+	dashboardHandler := handler.NewDashboardHandler(dashboardService)
+
 	r := router.New(authService, authHandler, userHandler,
 		supplierHandler, clientHandler, creditorHandler, productHandler,
 		shiftHandler, saleHandler, saleReturnHandler, clientPaymentHandler,
 		purchaseOrderHandler, supplierPaymentHandler, creditorTransactionHandler,
-		stockTransferHandler, inventoryCheckHandler)
+		stockTransferHandler, inventoryCheckHandler,
+		safeHandler, dashboardHandler)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.ServerPort),

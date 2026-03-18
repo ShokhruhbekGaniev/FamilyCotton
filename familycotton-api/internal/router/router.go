@@ -25,6 +25,8 @@ func New(
 	creditorTransactionHandler *handler.CreditorTransactionHandler,
 	stockTransferHandler *handler.StockTransferHandler,
 	inventoryCheckHandler *handler.InventoryCheckHandler,
+	safeHandler *handler.SafeHandler,
+	dashboardHandler *handler.DashboardHandler,
 ) *chi.Mux {
 	r := chi.NewRouter()
 
@@ -136,6 +138,25 @@ func New(
 				r.Post("/stock/transfer", stockTransferHandler.Create)
 				r.Post("/inventory-checks", inventoryCheckHandler.Create)
 				r.Put("/inventory-checks/{id}", inventoryCheckHandler.Update)
+			})
+
+			// Safe (owner only).
+			r.Route("/safe", func(r chi.Router) {
+				r.Use(middleware.RequireRole("owner"))
+				r.Get("/balance", safeHandler.Balance)
+				r.Get("/transactions", safeHandler.Transactions)
+				r.Get("/owner-debts", safeHandler.OwnerDebts)
+				r.Post("/owner-deposit", safeHandler.OwnerDeposit)
+			})
+
+			// Dashboard (owner only).
+			r.Route("/dashboard", func(r chi.Router) {
+				r.Use(middleware.RequireRole("owner"))
+				r.Get("/revenue", dashboardHandler.Revenue)
+				r.Get("/profit", dashboardHandler.Profit)
+				r.Get("/stock-value", dashboardHandler.StockValue)
+				r.Get("/sales-by-supplier", dashboardHandler.SalesBySupplier)
+				r.Get("/paid-vs-debt", dashboardHandler.PaidVsDebt)
 			})
 		})
 	})
