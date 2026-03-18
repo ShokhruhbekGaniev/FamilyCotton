@@ -16,6 +16,10 @@ func New(
 	clientHandler *handler.ClientHandler,
 	creditorHandler *handler.CreditorHandler,
 	productHandler *handler.ProductHandler,
+	shiftHandler *handler.ShiftHandler,
+	saleHandler *handler.SaleHandler,
+	saleReturnHandler *handler.SaleReturnHandler,
+	clientPaymentHandler *handler.ClientPaymentHandler,
 ) *chi.Mux {
 	r := chi.NewRouter()
 
@@ -88,6 +92,18 @@ func New(
 					r.Delete("/{id}", productHandler.Delete)
 				})
 			})
+
+			// Shifts + Sales (employee + owner).
+			r.Post("/shifts/open", shiftHandler.Open)
+			r.Post("/shifts/close", shiftHandler.Close)
+			r.Get("/shifts/current", shiftHandler.Current)
+			r.Get("/shifts", shiftHandler.List)
+			r.Post("/sales", saleHandler.Create)
+			r.Get("/sales", saleHandler.List)
+			r.Get("/sales/{id}", saleHandler.GetByID)
+			r.Post("/sale-returns", saleReturnHandler.Create)
+			r.Get("/sale-returns", saleReturnHandler.List)
+			r.Post("/client-payments", clientPaymentHandler.Create)
 		})
 	})
 

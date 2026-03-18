@@ -77,8 +77,29 @@ func main() {
 	creditorHandler := handler.NewCreditorHandler(creditorService)
 	productHandler := handler.NewProductHandler(productService)
 
+	// Phase 3 repositories.
+	shiftRepo := repository.NewShiftRepository(pool)
+	saleRepo := repository.NewSaleRepository(pool)
+	saleReturnRepo := repository.NewSaleReturnRepository(pool)
+	clientPaymentRepo := repository.NewClientPaymentRepository(pool)
+	safeTransactionRepo := repository.NewSafeTransactionRepository()
+	ownerDebtRepo := repository.NewOwnerDebtRepository()
+
+	// Phase 3 services.
+	shiftService := service.NewShiftService(pool, shiftRepo, safeTransactionRepo, ownerDebtRepo)
+	saleService := service.NewSaleService(pool, saleRepo, shiftRepo, productRepo, clientRepo)
+	saleReturnService := service.NewSaleReturnService(pool, saleReturnRepo, saleRepo, productRepo, clientRepo, safeTransactionRepo)
+	clientPaymentService := service.NewClientPaymentService(pool, clientPaymentRepo, clientRepo, safeTransactionRepo)
+
+	// Phase 3 handlers.
+	shiftHandler := handler.NewShiftHandler(shiftService)
+	saleHandler := handler.NewSaleHandler(saleService)
+	saleReturnHandler := handler.NewSaleReturnHandler(saleReturnService)
+	clientPaymentHandler := handler.NewClientPaymentHandler(clientPaymentService)
+
 	r := router.New(authService, authHandler, userHandler,
-		supplierHandler, clientHandler, creditorHandler, productHandler)
+		supplierHandler, clientHandler, creditorHandler, productHandler,
+		shiftHandler, saleHandler, saleReturnHandler, clientPaymentHandler)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.ServerPort),
