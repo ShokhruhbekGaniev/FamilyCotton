@@ -20,6 +20,11 @@ func New(
 	saleHandler *handler.SaleHandler,
 	saleReturnHandler *handler.SaleReturnHandler,
 	clientPaymentHandler *handler.ClientPaymentHandler,
+	purchaseOrderHandler *handler.PurchaseOrderHandler,
+	supplierPaymentHandler *handler.SupplierPaymentHandler,
+	creditorTransactionHandler *handler.CreditorTransactionHandler,
+	stockTransferHandler *handler.StockTransferHandler,
+	inventoryCheckHandler *handler.InventoryCheckHandler,
 ) *chi.Mux {
 	r := chi.NewRouter()
 
@@ -104,6 +109,34 @@ func New(
 			r.Post("/sale-returns", saleReturnHandler.Create)
 			r.Get("/sale-returns", saleReturnHandler.List)
 			r.Post("/client-payments", clientPaymentHandler.Create)
+
+			// Purchase Orders (owner only).
+			r.Route("/purchase-orders", func(r chi.Router) {
+				r.Use(middleware.RequireRole("owner"))
+				r.Get("/", purchaseOrderHandler.List)
+				r.Get("/{id}", purchaseOrderHandler.GetByID)
+				r.Post("/", purchaseOrderHandler.Create)
+			})
+
+			// Supplier Payments (owner only).
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireRole("owner"))
+				r.Post("/supplier-payments", supplierPaymentHandler.Create)
+			})
+
+			// Creditor Transactions (owner only).
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireRole("owner"))
+				r.Post("/creditor-transactions", creditorTransactionHandler.Create)
+			})
+
+			// Stock (owner only).
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireRole("owner"))
+				r.Post("/stock/transfer", stockTransferHandler.Create)
+				r.Post("/inventory-checks", inventoryCheckHandler.Create)
+				r.Put("/inventory-checks/{id}", inventoryCheckHandler.Update)
+			})
 		})
 	})
 

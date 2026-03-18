@@ -97,9 +97,32 @@ func main() {
 	saleReturnHandler := handler.NewSaleReturnHandler(saleReturnService)
 	clientPaymentHandler := handler.NewClientPaymentHandler(clientPaymentService)
 
+	// Phase 4 repositories.
+	purchaseOrderRepo := repository.NewPurchaseOrderRepository(pool)
+	supplierPaymentRepo := repository.NewSupplierPaymentRepository(pool)
+	creditorTransactionRepo := repository.NewCreditorTransactionRepository(pool)
+	stockTransferRepo := repository.NewStockTransferRepository(pool)
+	inventoryCheckRepo := repository.NewInventoryCheckRepository(pool)
+
+	// Phase 4 services.
+	purchaseOrderService := service.NewPurchaseOrderService(pool, purchaseOrderRepo, productRepo, supplierRepo, safeTransactionRepo)
+	supplierPaymentService := service.NewSupplierPaymentService(pool, supplierPaymentRepo, purchaseOrderRepo, productRepo, supplierRepo, safeTransactionRepo)
+	creditorTransactionService := service.NewCreditorTransactionService(pool, creditorTransactionRepo, creditorRepo, safeTransactionRepo)
+	stockTransferService := service.NewStockTransferService(pool, stockTransferRepo, productRepo)
+	inventoryCheckService := service.NewInventoryCheckService(pool, inventoryCheckRepo, productRepo)
+
+	// Phase 4 handlers.
+	purchaseOrderHandler := handler.NewPurchaseOrderHandler(purchaseOrderService)
+	supplierPaymentHandler := handler.NewSupplierPaymentHandler(supplierPaymentService)
+	creditorTransactionHandler := handler.NewCreditorTransactionHandler(creditorTransactionService)
+	stockTransferHandler := handler.NewStockTransferHandler(stockTransferService)
+	inventoryCheckHandler := handler.NewInventoryCheckHandler(inventoryCheckService)
+
 	r := router.New(authService, authHandler, userHandler,
 		supplierHandler, clientHandler, creditorHandler, productHandler,
-		shiftHandler, saleHandler, saleReturnHandler, clientPaymentHandler)
+		shiftHandler, saleHandler, saleReturnHandler, clientPaymentHandler,
+		purchaseOrderHandler, supplierPaymentHandler, creditorTransactionHandler,
+		stockTransferHandler, inventoryCheckHandler)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.ServerPort),
