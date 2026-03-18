@@ -1,0 +1,7 @@
+/api
+/tmp
+.env
+.idea/
+.vscode/
+*.swp
+.DS_Store
