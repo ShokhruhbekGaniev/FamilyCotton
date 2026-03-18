@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shopspring/decimal"
 
 	"github.com/familycotton/api/internal/model"
 )
@@ -97,4 +98,13 @@ func (r *CreditorRepository) SoftDelete(ctx context.Context, id uuid.UUID) error
 		return model.NewAppError(model.ErrNotFound, "creditor not found")
 	}
 	return nil
+}
+
+func (r *CreditorRepository) UpdateDebt(ctx context.Context, tx DBTX, creditorID uuid.UUID, delta decimal.Decimal) error {
+	_, err := tx.Exec(ctx,
+		`UPDATE creditors SET total_debt = total_debt + $1, updated_at = NOW()
+		 WHERE id = $2 AND is_deleted = false`,
+		delta, creditorID,
+	)
+	return err
 }
