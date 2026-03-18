@@ -82,8 +82,8 @@ func main() {
 	saleRepo := repository.NewSaleRepository(pool)
 	saleReturnRepo := repository.NewSaleReturnRepository(pool)
 	clientPaymentRepo := repository.NewClientPaymentRepository(pool)
-	safeTransactionRepo := repository.NewSafeTransactionRepository()
-	ownerDebtRepo := repository.NewOwnerDebtRepository()
+	safeTransactionRepo := repository.NewSafeTransactionRepository(pool)
+	ownerDebtRepo := repository.NewOwnerDebtRepository(pool)
 
 	// Phase 3 services.
 	shiftService := service.NewShiftService(pool, shiftRepo, safeTransactionRepo, ownerDebtRepo)
