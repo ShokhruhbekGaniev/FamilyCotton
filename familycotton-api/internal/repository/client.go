@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shopspring/decimal"
 
 	"github.com/familycotton/api/internal/model"
 )
@@ -82,6 +83,16 @@ func (r *ClientRepository) Update(ctx context.Context, c *model.Client) error {
 	if errors.Is(err, pgx.ErrNoRows) {
 		return model.NewAppError(model.ErrNotFound, "client not found")
 	}
+	return err
+}
+
+// UpdateDebt adjusts client total_debt within a transaction.
+func (r *ClientRepository) UpdateDebt(ctx context.Context, tx DBTX, clientID uuid.UUID, delta decimal.Decimal) error {
+	_, err := tx.Exec(ctx,
+		`UPDATE clients SET total_debt = total_debt + $1, updated_at = NOW()
+		 WHERE id = $2 AND is_deleted = false`,
+		delta, clientID,
+	)
 	return err
 }
 

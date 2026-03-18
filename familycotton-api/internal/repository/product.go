@@ -130,6 +130,37 @@ func (r *ProductRepository) SoftDelete(ctx context.Context, id uuid.UUID) error 
 	return nil
 }
 
+// GetByIDForUpdate locks the product row within a transaction.
+func (r *ProductRepository) GetByIDForUpdate(ctx context.Context, tx DBTX, id uuid.UUID) (*model.Product, error) {
+	p := &model.Product{}
+	err := tx.QueryRow(ctx,
+		`SELECT id, sku, name, brand, supplier_id, photo_url, cost_price, sell_price,
+		        qty_shop, qty_warehouse, is_deleted, created_at, updated_at
+		 FROM products WHERE id = $1 AND is_deleted = false
+		 FOR UPDATE`, id,
+	).Scan(&p.ID, &p.SKU, &p.Name, &p.Brand, &p.SupplierID, &p.PhotoURL,
+		&p.CostPrice, &p.SellPrice, &p.QtyShop, &p.QtyWarehouse,
+		&p.IsDeleted, &p.CreatedAt, &p.UpdatedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, model.NewAppError(model.ErrNotFound, "product not found")
+	}
+	if err != nil {
+		return nil, err
+	}
+	p.Margin = p.SellPrice.Sub(p.CostPrice)
+	return p, nil
+}
+
+// UpdateStock updates qty_shop within a transaction.
+func (r *ProductRepository) UpdateStock(ctx context.Context, tx DBTX, id uuid.UUID, qtyShop, qtyWarehouse int) error {
+	_, err := tx.Exec(ctx,
+		`UPDATE products SET qty_shop = $1, qty_warehouse = $2, updated_at = NOW()
+		 WHERE id = $3 AND is_deleted = false`,
+		qtyShop, qtyWarehouse, id,
+	)
+	return err
+}
+
 func buildProductFilter(f model.ProductFilter) (string, []any) {
 	var conditions []string
 	var args []any
