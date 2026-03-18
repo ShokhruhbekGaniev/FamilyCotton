@@ -62,7 +62,7 @@ func (s *CreditorTransactionService) Create(ctx context.Context, userID uuid.UUI
 		desc := "Creditor loan received"
 		if err := s.safeRepo.Create(ctx, tx, &model.SafeTransaction{
 			Type:        "income",
-			Source:      "creditor_loan",
+			Source:      "creditor_receive",
 			BalanceType: "cash",
 			Amount:      amountUZS,
 			Description: &desc,
