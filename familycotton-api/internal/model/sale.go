@@ -8,26 +8,29 @@ import (
 )
 
 type Sale struct {
-	ID           uuid.UUID       `json:"id"`
-	ShiftID      uuid.UUID       `json:"shift_id"`
-	ClientID     *uuid.UUID      `json:"client_id"`
-	TotalAmount  decimal.Decimal `json:"total_amount"`
-	PaidCash     decimal.Decimal `json:"paid_cash"`
-	PaidTerminal decimal.Decimal `json:"paid_terminal"`
-	PaidOnline   decimal.Decimal `json:"paid_online"`
-	PaidDebt     decimal.Decimal `json:"paid_debt"`
-	CreatedBy    uuid.UUID       `json:"created_by"`
-	CreatedAt    time.Time       `json:"created_at"`
-	Items        []SaleItem      `json:"items,omitempty"`
+	ID            uuid.UUID       `json:"id"`
+	ShiftID       uuid.UUID       `json:"shift_id"`
+	ClientID      *uuid.UUID      `json:"client_id"`
+	TotalAmount   decimal.Decimal `json:"total_amount"`
+	PaidCash      decimal.Decimal `json:"paid_cash"`
+	PaidTerminal  decimal.Decimal `json:"paid_terminal"`
+	PaidOnline    decimal.Decimal `json:"paid_online"`
+	PaidDebt      decimal.Decimal `json:"paid_debt"`
+	CreatedBy     uuid.UUID       `json:"created_by"`
+	CreatedByName string          `json:"created_by_name"`
+	ClientName    *string         `json:"client_name,omitempty"`
+	CreatedAt     time.Time       `json:"created_at"`
+	Items         []SaleItem      `json:"items,omitempty"`
 }
 
 type SaleItem struct {
-	ID        uuid.UUID       `json:"id"`
-	SaleID    uuid.UUID       `json:"sale_id"`
-	ProductID uuid.UUID       `json:"product_id"`
-	Quantity  int             `json:"quantity"`
-	UnitPrice decimal.Decimal `json:"unit_price"`
-	Subtotal  decimal.Decimal `json:"subtotal"`
+	ID          uuid.UUID       `json:"id"`
+	SaleID      uuid.UUID       `json:"sale_id"`
+	ProductID   uuid.UUID       `json:"product_id"`
+	ProductName string          `json:"product_name"`
+	Quantity    int             `json:"quantity"`
+	UnitPrice   decimal.Decimal `json:"unit_price"`
+	Subtotal    decimal.Decimal `json:"subtotal"`
 }
 
 type CreateSaleItemRequest struct {
@@ -37,12 +40,12 @@ type CreateSaleItemRequest struct {
 }
 
 type CreateSaleRequest struct {
-	ClientID     *uuid.UUID             `json:"client_id"`
+	ClientID     *uuid.UUID              `json:"client_id"`
 	Items        []CreateSaleItemRequest `json:"items"`
-	PaidCash     decimal.Decimal        `json:"paid_cash"`
-	PaidTerminal decimal.Decimal        `json:"paid_terminal"`
-	PaidOnline   decimal.Decimal        `json:"paid_online"`
-	PaidDebt     decimal.Decimal        `json:"paid_debt"`
+	PaidCash     decimal.Decimal         `json:"paid_cash"`
+	PaidTerminal decimal.Decimal         `json:"paid_terminal"`
+	PaidOnline   decimal.Decimal         `json:"paid_online"`
+	PaidDebt     decimal.Decimal         `json:"paid_debt"`
 }
 
 func (r *CreateSaleRequest) Validate() error {

@@ -134,3 +134,68 @@ func (s *SaleService) GetByID(ctx context.Context, id uuid.UUID) (*model.Sale, e
 func (s *SaleService) List(ctx context.Context, shiftID, clientID *uuid.UUID, page, limit int) ([]model.Sale, int, error) {
 	return s.saleRepo.List(ctx, shiftID, clientID, page, limit)
 }
+
+func (s *SaleService) Delete(ctx context.Context, id uuid.UUID) error {
+	// 1. Fetch the sale.
+	sale, err := s.saleRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// 2. Check that the shift is still open.
+	shift, err := s.shiftRepo.GetByID(ctx, sale.ShiftID)
+	if err != nil {
+		return err
+	}
+	if shift.Status != "open" {
+		return model.NewAppError(model.ErrForbidden, "cannot delete sale in a closed shift")
+	}
+
+	// 3. Check that the sale has no returns.
+	hasReturns, err := s.saleRepo.HasReturns(ctx, id)
+	if err != nil {
+		return err
+	}
+	if hasReturns {
+		return model.NewAppError(model.ErrConflict, "cannot delete sale with returns")
+	}
+
+	// 4. Begin transaction.
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	// 5. Restore stock for each item.
+	items, err := s.saleRepo.GetSaleItemsBySaleID(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+	for _, item := range items {
+		product, err := s.productRepo.GetByIDForUpdate(ctx, tx, item.ProductID)
+		if err != nil {
+			return err
+		}
+		if err := s.productRepo.UpdateStock(ctx, tx, product.ID, product.QtyShop+item.Quantity, product.QtyWarehouse); err != nil {
+			return err
+		}
+	}
+
+	// 6. Reduce client debt if there was debt payment.
+	if sale.PaidDebt.IsPositive() && sale.ClientID != nil {
+		if err := s.clientRepo.UpdateDebt(ctx, tx, *sale.ClientID, sale.PaidDebt.Neg()); err != nil {
+			return err
+		}
+	}
+
+	// 7. Delete sale items, then sale.
+	if err := s.saleRepo.DeleteSaleItems(ctx, tx, id); err != nil {
+		return err
+	}
+	if err := s.saleRepo.DeleteSale(ctx, tx, id); err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
+}

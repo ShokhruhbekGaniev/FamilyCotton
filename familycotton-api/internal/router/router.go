@@ -108,6 +108,7 @@ func New(
 			r.Post("/sales", saleHandler.Create)
 			r.Get("/sales", saleHandler.List)
 			r.Get("/sales/{id}", saleHandler.GetByID)
+			r.Delete("/sales/{id}", saleHandler.Delete)
 			r.Post("/sale-returns", saleReturnHandler.Create)
 			r.Get("/sale-returns", saleReturnHandler.List)
 			r.Post("/client-payments", clientPaymentHandler.Create)

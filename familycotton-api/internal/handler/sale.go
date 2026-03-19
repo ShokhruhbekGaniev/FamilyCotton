@@ -68,3 +68,16 @@ func (h *SaleHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 	respondList(w, sales, page, limit, total)
 }
+
+func (h *SaleHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		respondError(w, model.NewAppError(model.ErrValidation, "invalid sale id"))
+		return
+	}
+	if err := h.service.Delete(r.Context(), id); err != nil {
+		respondError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
