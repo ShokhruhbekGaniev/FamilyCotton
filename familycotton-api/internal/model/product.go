@@ -51,13 +51,15 @@ func (r *CreateProductRequest) Validate() error {
 }
 
 type UpdateProductRequest struct {
-	SKU        *string          `json:"sku,omitempty"`
-	Name       *string          `json:"name,omitempty"`
-	Brand      *string          `json:"brand,omitempty"`
-	SupplierID *uuid.UUID       `json:"supplier_id,omitempty"`
-	PhotoURL   *string          `json:"photo_url,omitempty"`
-	CostPrice  *decimal.Decimal `json:"cost_price,omitempty"`
-	SellPrice  *decimal.Decimal `json:"sell_price,omitempty"`
+	SKU          *string          `json:"sku,omitempty"`
+	Name         *string          `json:"name,omitempty"`
+	Brand        *string          `json:"brand,omitempty"`
+	SupplierID   *uuid.UUID       `json:"supplier_id,omitempty"`
+	PhotoURL     *string          `json:"photo_url,omitempty"`
+	CostPrice    *decimal.Decimal `json:"cost_price,omitempty"`
+	SellPrice    *decimal.Decimal `json:"sell_price,omitempty"`
+	QtyShop      *int             `json:"qty_shop,omitempty"`
+	QtyWarehouse *int             `json:"qty_warehouse,omitempty"`
 }
 
 func (r *UpdateProductRequest) Validate() error {
@@ -72,6 +74,12 @@ func (r *UpdateProductRequest) Validate() error {
 	}
 	if r.SellPrice != nil && r.SellPrice.IsNegative() {
 		return NewAppError(ErrValidation, "Цена продажи не может быть отрицательной")
+	}
+	if r.QtyShop != nil && *r.QtyShop < 0 {
+		return NewAppError(ErrValidation, "Количество в магазине не может быть отрицательным")
+	}
+	if r.QtyWarehouse != nil && *r.QtyWarehouse < 0 {
+		return NewAppError(ErrValidation, "Количество на складе не может быть отрицательным")
 	}
 	return nil
 }

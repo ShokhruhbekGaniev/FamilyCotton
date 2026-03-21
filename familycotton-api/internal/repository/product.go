@@ -99,10 +99,10 @@ func (r *ProductRepository) List(ctx context.Context, filter model.ProductFilter
 func (r *ProductRepository) Update(ctx context.Context, p *model.Product) error {
 	err := r.db.QueryRow(ctx,
 		`UPDATE products SET sku=$1, name=$2, brand=$3, supplier_id=$4, photo_url=$5,
-		        cost_price=$6, sell_price=$7, updated_at=NOW()
-		 WHERE id=$8 AND is_deleted = false
+		        cost_price=$6, sell_price=$7, qty_shop=$8, qty_warehouse=$9, updated_at=NOW()
+		 WHERE id=$10 AND is_deleted = false
 		 RETURNING updated_at`,
-		p.SKU, p.Name, p.Brand, p.SupplierID, p.PhotoURL, p.CostPrice, p.SellPrice, p.ID,
+		p.SKU, p.Name, p.Brand, p.SupplierID, p.PhotoURL, p.CostPrice, p.SellPrice, p.QtyShop, p.QtyWarehouse, p.ID,
 	).Scan(&p.UpdatedAt)
 	if err != nil {
 		if isDuplicateKey(err) {

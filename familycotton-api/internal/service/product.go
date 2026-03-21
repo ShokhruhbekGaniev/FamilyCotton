@@ -75,6 +75,12 @@ func (s *ProductService) Update(ctx context.Context, id uuid.UUID, req *model.Up
 	if req.SellPrice != nil {
 		product.SellPrice = *req.SellPrice
 	}
+	if req.QtyShop != nil {
+		product.QtyShop = *req.QtyShop
+	}
+	if req.QtyWarehouse != nil {
+		product.QtyWarehouse = *req.QtyWarehouse
+	}
 	if err := s.repo.Update(ctx, product); err != nil {
 		return nil, err
 	}
