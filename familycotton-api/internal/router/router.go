@@ -105,6 +105,7 @@ func New(
 			r.Post("/shifts/close", shiftHandler.Close)
 			r.Get("/shifts/current", shiftHandler.Current)
 			r.Get("/shifts", shiftHandler.List)
+			r.Get("/shifts/{id}", shiftHandler.GetByID)
 			r.Post("/sales", saleHandler.Create)
 			r.Get("/sales", saleHandler.List)
 			r.Get("/sales/{id}", saleHandler.GetByID)

@@ -38,7 +38,7 @@ func (s *ShiftService) Open(ctx context.Context, userID uuid.UUID) (*model.Shift
 		return nil, err
 	}
 	if current != nil {
-		return nil, model.NewAppError(model.ErrValidation, "a shift is already open")
+		return nil, model.NewAppError(model.ErrValidation, "Смена уже открыта")
 	}
 
 	shift := &model.Shift{
@@ -57,7 +57,7 @@ func (s *ShiftService) Close(ctx context.Context, userID uuid.UUID) (*model.Shif
 		return nil, err
 	}
 	if current == nil {
-		return nil, model.NewAppError(model.ErrValidation, "no open shift to close")
+		return nil, model.NewAppError(model.ErrValidation, "Нет открытой смены для закрытия")
 	}
 
 	tx, err := s.pool.Begin(ctx)
@@ -132,9 +132,13 @@ func (s *ShiftService) GetCurrent(ctx context.Context) (*model.Shift, error) {
 		return nil, err
 	}
 	if current == nil {
-		return nil, model.NewAppError(model.ErrNotFound, "no open shift")
+		return nil, model.NewAppError(model.ErrNotFound, "Нет открытой смены")
 	}
 	return current, nil
+}
+
+func (s *ShiftService) GetByID(ctx context.Context, id uuid.UUID) (*model.Shift, error) {
+	return s.shiftRepo.GetByID(ctx, id)
 }
 
 func (s *ShiftService) List(ctx context.Context, page, limit int) ([]model.Shift, int, error) {

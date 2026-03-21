@@ -31,7 +31,7 @@ type CreateInventoryCheckRequest struct {
 
 func (r *CreateInventoryCheckRequest) Validate() error {
 	if r.Location != "shop" && r.Location != "warehouse" {
-		return NewAppError(ErrValidation, "location must be 'shop' or 'warehouse'")
+		return NewAppError(ErrValidation, "Местоположение должно быть 'shop' или 'warehouse'")
 	}
 	return nil
 }

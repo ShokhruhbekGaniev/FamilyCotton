@@ -37,7 +37,7 @@ func (r *ShiftRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Shi
 	).Scan(&s.ID, &s.OpenedBy, &s.ClosedBy, &s.OpenedAt, &s.ClosedAt,
 		&s.TotalCash, &s.TotalTerminal, &s.TotalOnline, &s.TotalDebtSales, &s.Status)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "shift not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Смена не найдена")
 	}
 	return s, err
 }

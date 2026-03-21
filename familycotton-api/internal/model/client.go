@@ -24,7 +24,7 @@ type CreateClientRequest struct {
 
 func (r *CreateClientRequest) Validate() error {
 	if r.Name == "" {
-		return NewAppError(ErrValidation, "name is required")
+		return NewAppError(ErrValidation, "Имя обязательно")
 	}
 	return nil
 }
@@ -36,7 +36,7 @@ type UpdateClientRequest struct {
 
 func (r *UpdateClientRequest) Validate() error {
 	if r.Name != nil && *r.Name == "" {
-		return NewAppError(ErrValidation, "name cannot be empty")
+		return NewAppError(ErrValidation, "Имя не может быть пустым")
 	}
 	return nil
 }

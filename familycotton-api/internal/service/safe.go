@@ -39,7 +39,7 @@ type OwnerDepositRequest struct {
 
 func (s *SafeService) OwnerDeposit(ctx context.Context, req *OwnerDepositRequest) error {
 	if req.Amount.LessThanOrEqual(decimal.Zero) {
-		return model.NewAppError(model.ErrValidation, "amount must be positive")
+		return model.NewAppError(model.ErrValidation, "Сумма должна быть положительной")
 	}
 
 	tx, err := s.pool.Begin(ctx)

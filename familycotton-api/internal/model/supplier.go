@@ -26,7 +26,7 @@ type CreateSupplierRequest struct {
 
 func (r *CreateSupplierRequest) Validate() error {
 	if r.Name == "" {
-		return NewAppError(ErrValidation, "name is required")
+		return NewAppError(ErrValidation, "Название обязательно")
 	}
 	return nil
 }
@@ -39,7 +39,7 @@ type UpdateSupplierRequest struct {
 
 func (r *UpdateSupplierRequest) Validate() error {
 	if r.Name != nil && *r.Name == "" {
-		return NewAppError(ErrValidation, "name cannot be empty")
+		return NewAppError(ErrValidation, "Название не может быть пустым")
 	}
 	return nil
 }

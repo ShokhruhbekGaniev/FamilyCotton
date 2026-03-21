@@ -36,7 +36,7 @@ func (r *ClientRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Cl
 		 FROM clients WHERE id = $1 AND is_deleted = false`, id,
 	).Scan(&c.ID, &c.Name, &c.Phone, &c.TotalDebt, &c.IsDeleted, &c.CreatedAt, &c.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "client not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Клиент не найден")
 	}
 	return c, err
 }
@@ -81,7 +81,7 @@ func (r *ClientRepository) Update(ctx context.Context, c *model.Client) error {
 		c.Name, c.Phone, c.ID,
 	).Scan(&c.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return model.NewAppError(model.ErrNotFound, "client not found")
+		return model.NewAppError(model.ErrNotFound, "Клиент не найден")
 	}
 	return err
 }
@@ -105,7 +105,7 @@ func (r *ClientRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	if tag.RowsAffected() == 0 {
-		return model.NewAppError(model.ErrNotFound, "client not found")
+		return model.NewAppError(model.ErrNotFound, "Клиент не найден")
 	}
 	return nil
 }

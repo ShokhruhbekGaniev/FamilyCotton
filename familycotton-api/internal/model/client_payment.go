@@ -24,11 +24,11 @@ type CreateClientPaymentRequest struct {
 
 func (r *CreateClientPaymentRequest) Validate() error {
 	if r.Amount.LessThanOrEqual(decimal.Zero) {
-		return NewAppError(ErrValidation, "amount must be positive")
+		return NewAppError(ErrValidation, "Сумма должна быть положительной")
 	}
 	validMethods := map[string]bool{"cash": true, "terminal": true, "online": true}
 	if !validMethods[r.PaymentMethod] {
-		return NewAppError(ErrValidation, "payment_method must be 'cash', 'terminal', or 'online'")
+		return NewAppError(ErrValidation, "Способ оплаты должен быть 'cash', 'terminal' или 'online'")
 	}
 	return nil
 }

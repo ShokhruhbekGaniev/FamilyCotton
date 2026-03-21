@@ -84,7 +84,7 @@ func (s *PurchaseOrderService) Create(ctx context.Context, userID uuid.UUID, req
 
 	// Validate paid amount does not exceed total.
 	if req.PaidAmount.GreaterThan(totalAmount) {
-		return nil, model.NewAppError(model.ErrValidation, "paid_amount cannot exceed total_amount")
+		return nil, model.NewAppError(model.ErrValidation, "Сумма оплаты не может превышать общую сумму заказа")
 	}
 
 	po := &model.PurchaseOrder{

@@ -36,16 +36,16 @@ type CreateProductRequest struct {
 
 func (r *CreateProductRequest) Validate() error {
 	if r.SKU == "" {
-		return NewAppError(ErrValidation, "sku is required")
+		return NewAppError(ErrValidation, "Артикул обязателен")
 	}
 	if r.Name == "" {
-		return NewAppError(ErrValidation, "name is required")
+		return NewAppError(ErrValidation, "Название обязательно")
 	}
 	if r.CostPrice.IsNegative() {
-		return NewAppError(ErrValidation, "cost_price cannot be negative")
+		return NewAppError(ErrValidation, "Себестоимость не может быть отрицательной")
 	}
 	if r.SellPrice.IsNegative() {
-		return NewAppError(ErrValidation, "sell_price cannot be negative")
+		return NewAppError(ErrValidation, "Цена продажи не может быть отрицательной")
 	}
 	return nil
 }
@@ -62,16 +62,16 @@ type UpdateProductRequest struct {
 
 func (r *UpdateProductRequest) Validate() error {
 	if r.SKU != nil && *r.SKU == "" {
-		return NewAppError(ErrValidation, "sku cannot be empty")
+		return NewAppError(ErrValidation, "Артикул не может быть пустым")
 	}
 	if r.Name != nil && *r.Name == "" {
-		return NewAppError(ErrValidation, "name cannot be empty")
+		return NewAppError(ErrValidation, "Название не может быть пустым")
 	}
 	if r.CostPrice != nil && r.CostPrice.IsNegative() {
-		return NewAppError(ErrValidation, "cost_price cannot be negative")
+		return NewAppError(ErrValidation, "Себестоимость не может быть отрицательной")
 	}
 	if r.SellPrice != nil && r.SellPrice.IsNegative() {
-		return NewAppError(ErrValidation, "sell_price cannot be negative")
+		return NewAppError(ErrValidation, "Цена продажи не может быть отрицательной")
 	}
 	return nil
 }

@@ -1,0 +1,23 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'familycotton-api/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 45.130.148.93
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/familycotton
+            git pull origin main
+            cd familycotton-api
+            docker compose -f docker-compose.prod.yml up -d --build

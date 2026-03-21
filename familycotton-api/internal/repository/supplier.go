@@ -36,7 +36,7 @@ func (r *SupplierRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.
 		 FROM suppliers WHERE id = $1 AND is_deleted = false`, id,
 	).Scan(&s.ID, &s.Name, &s.Phone, &s.Notes, &s.TotalDebt, &s.IsDeleted, &s.CreatedAt, &s.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "supplier not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Поставщик не найден")
 	}
 	return s, err
 }
@@ -81,7 +81,7 @@ func (r *SupplierRepository) Update(ctx context.Context, s *model.Supplier) erro
 		s.Name, s.Phone, s.Notes, s.ID,
 	).Scan(&s.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return model.NewAppError(model.ErrNotFound, "supplier not found")
+		return model.NewAppError(model.ErrNotFound, "Поставщик не найден")
 	}
 	return err
 }
@@ -95,7 +95,7 @@ func (r *SupplierRepository) SoftDelete(ctx context.Context, id uuid.UUID) error
 		return err
 	}
 	if tag.RowsAffected() == 0 {
-		return model.NewAppError(model.ErrNotFound, "supplier not found")
+		return model.NewAppError(model.ErrNotFound, "Поставщик не найден")
 	}
 	return nil
 }

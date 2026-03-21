@@ -47,7 +47,7 @@ func (r *PurchaseOrderRepository) GetByID(ctx context.Context, id uuid.UUID) (*m
 	).Scan(&po.ID, &po.SupplierID, &po.TotalAmount, &po.PaidAmount, &po.Status,
 		&po.CreatedBy, &po.CreatedAt, &po.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "purchase order not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Заказ не найден")
 	}
 	if err != nil {
 		return nil, err

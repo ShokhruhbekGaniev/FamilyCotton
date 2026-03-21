@@ -30,7 +30,7 @@ func (r *ProductRepository) Create(ctx context.Context, p *model.Product) error 
 	).Scan(&p.CreatedAt, &p.UpdatedAt)
 	if err != nil {
 		if isDuplicateKey(err) {
-			return model.NewAppError(model.ErrConflict, "sku already exists")
+			return model.NewAppError(model.ErrConflict, "Товар с таким артикулом уже существует")
 		}
 		return err
 	}
@@ -47,7 +47,7 @@ func (r *ProductRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.P
 		&p.CostPrice, &p.SellPrice, &p.QtyShop, &p.QtyWarehouse,
 		&p.IsDeleted, &p.CreatedAt, &p.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "product not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Товар не найден")
 	}
 	if err != nil {
 		return nil, err
@@ -106,10 +106,10 @@ func (r *ProductRepository) Update(ctx context.Context, p *model.Product) error 
 	).Scan(&p.UpdatedAt)
 	if err != nil {
 		if isDuplicateKey(err) {
-			return model.NewAppError(model.ErrConflict, "sku already exists")
+			return model.NewAppError(model.ErrConflict, "Товар с таким артикулом уже существует")
 		}
 		if errors.Is(err, pgx.ErrNoRows) {
-			return model.NewAppError(model.ErrNotFound, "product not found")
+			return model.NewAppError(model.ErrNotFound, "Товар не найден")
 		}
 		return err
 	}
@@ -125,7 +125,7 @@ func (r *ProductRepository) SoftDelete(ctx context.Context, id uuid.UUID) error 
 		return err
 	}
 	if tag.RowsAffected() == 0 {
-		return model.NewAppError(model.ErrNotFound, "product not found")
+		return model.NewAppError(model.ErrNotFound, "Товар не найден")
 	}
 	return nil
 }
@@ -142,7 +142,7 @@ func (r *ProductRepository) GetByIDForUpdate(ctx context.Context, tx DBTX, id uu
 		&p.CostPrice, &p.SellPrice, &p.QtyShop, &p.QtyWarehouse,
 		&p.IsDeleted, &p.CreatedAt, &p.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "product not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Товар не найден")
 	}
 	if err != nil {
 		return nil, err

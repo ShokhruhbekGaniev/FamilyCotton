@@ -29,16 +29,16 @@ type CreateCreditorTransactionRequest struct {
 
 func (r *CreateCreditorTransactionRequest) Validate() error {
 	if r.Type != "receive" && r.Type != "repay" {
-		return NewAppError(ErrValidation, "type must be 'receive' or 'repay'")
+		return NewAppError(ErrValidation, "Тип должен быть 'receive' или 'repay'")
 	}
 	if r.Currency != "UZS" && r.Currency != "USD" {
-		return NewAppError(ErrValidation, "currency must be 'UZS' or 'USD'")
+		return NewAppError(ErrValidation, "Валюта должна быть 'UZS' или 'USD'")
 	}
 	if r.Amount.LessThanOrEqual(decimal.Zero) {
-		return NewAppError(ErrValidation, "amount must be positive")
+		return NewAppError(ErrValidation, "Сумма должна быть положительной")
 	}
 	if r.ExchangeRate.LessThanOrEqual(decimal.Zero) {
-		return NewAppError(ErrValidation, "exchange_rate must be positive")
+		return NewAppError(ErrValidation, "Курс обмена должен быть положительным")
 	}
 	return nil
 }

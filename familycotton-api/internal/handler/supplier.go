@@ -31,7 +31,7 @@ func (h *SupplierHandler) List(w http.ResponseWriter, r *http.Request) {
 func (h *SupplierHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid supplier id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID поставщика"))
 		return
 	}
 	supplier, err := h.service.GetByID(r.Context(), id)
@@ -59,7 +59,7 @@ func (h *SupplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid supplier id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID поставщика"))
 		return
 	}
 	var req model.UpdateSupplierRequest
@@ -78,7 +78,7 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *SupplierHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid supplier id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID поставщика"))
 		return
 	}
 	if err := h.service.Delete(r.Context(), id); err != nil {

@@ -51,13 +51,13 @@ func (s *StockTransferService) Create(ctx context.Context, userID uuid.UUID, req
 	switch req.Direction {
 	case "warehouse_to_shop":
 		if product.QtyWarehouse < req.Quantity {
-			return nil, model.NewAppError(model.ErrValidation, "insufficient warehouse stock")
+			return nil, model.NewAppError(model.ErrValidation, "Недостаточно товара на складе")
 		}
 		newQtyShop += req.Quantity
 		newQtyWarehouse -= req.Quantity
 	case "shop_to_warehouse":
 		if product.QtyShop < req.Quantity {
-			return nil, model.NewAppError(model.ErrValidation, "insufficient shop stock")
+			return nil, model.NewAppError(model.ErrValidation, "Недостаточно товара в магазине")
 		}
 		newQtyShop -= req.Quantity
 		newQtyWarehouse += req.Quantity

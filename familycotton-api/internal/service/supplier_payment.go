@@ -98,7 +98,7 @@ func (s *SupplierPaymentService) Create(ctx context.Context, userID uuid.UUID, r
 		}
 		qty := *req.ReturnedQty
 		if product.QtyShop < qty {
-			return nil, model.NewAppError(model.ErrValidation, "insufficient shop stock for product return")
+			return nil, model.NewAppError(model.ErrValidation, "Недостаточно товара в магазине для возврата")
 		}
 		if err := s.productRepo.UpdateStock(ctx, tx, product.ID, product.QtyShop-qty, product.QtyWarehouse); err != nil {
 			return nil, err

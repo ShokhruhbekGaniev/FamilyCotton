@@ -55,7 +55,7 @@ func (s *SaleReturnService) Create(ctx context.Context, userID uuid.UUID, req *m
 		return nil, err
 	}
 	if req.Quantity > saleItem.Quantity-alreadyReturned {
-		return nil, model.NewAppError(model.ErrValidation, "return quantity exceeds available")
+		return nil, model.NewAppError(model.ErrValidation, "Количество возврата превышает доступное")
 	}
 
 	tx, err := s.pool.Begin(ctx)
@@ -137,7 +137,7 @@ func (s *SaleReturnService) Create(ctx context.Context, userID uuid.UUID, req *m
 			return nil, err
 		}
 		if newProduct.QtyShop < req.Quantity {
-			return nil, model.NewAppError(model.ErrValidation, "insufficient stock for exchange product")
+			return nil, model.NewAppError(model.ErrValidation, "Недостаточно товара для обмена")
 		}
 		if err := s.productRepo.UpdateStock(ctx, tx, newProduct.ID, newProduct.QtyShop-req.Quantity, newProduct.QtyWarehouse); err != nil {
 			return nil, err
@@ -160,7 +160,7 @@ func (s *SaleReturnService) Create(ctx context.Context, userID uuid.UUID, req *m
 			return nil, err
 		}
 		if newProduct.QtyShop < req.Quantity {
-			return nil, model.NewAppError(model.ErrValidation, "insufficient stock for exchange product")
+			return nil, model.NewAppError(model.ErrValidation, "Недостаточно товара для обмена")
 		}
 		if err := s.productRepo.UpdateStock(ctx, tx, newProduct.ID, newProduct.QtyShop-req.Quantity, newProduct.QtyWarehouse); err != nil {
 			return nil, err

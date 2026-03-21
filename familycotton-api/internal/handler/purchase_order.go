@@ -37,7 +37,7 @@ func (h *PurchaseOrderHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *PurchaseOrderHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid purchase order id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID заказа"))
 		return
 	}
 	po, err := h.service.GetByID(r.Context(), id)

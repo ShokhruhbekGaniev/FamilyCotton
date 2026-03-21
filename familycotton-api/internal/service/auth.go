@@ -40,11 +40,11 @@ func NewAuthService(
 func (s *AuthService) Login(ctx context.Context, req *model.LoginRequest) (*model.TokenPair, error) {
 	user, err := s.userRepo.GetByLogin(ctx, req.Login)
 	if err != nil {
-		return nil, model.NewAppError(model.ErrUnauthorized, "invalid login or password")
+		return nil, model.NewAppError(model.ErrUnauthorized, "Неверный логин или пароль")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		return nil, model.NewAppError(model.ErrUnauthorized, "invalid login or password")
+		return nil, model.NewAppError(model.ErrUnauthorized, "Неверный логин или пароль")
 	}
 
 	return s.generateTokenPair(ctx, user)
@@ -58,7 +58,7 @@ func (s *AuthService) Refresh(ctx context.Context, req *model.RefreshRequest) (*
 		return nil, err
 	}
 	if !exists {
-		return nil, model.NewAppError(model.ErrUnauthorized, "invalid or expired refresh token")
+		return nil, model.NewAppError(model.ErrUnauthorized, "Недействительный или истёкший токен обновления")
 	}
 
 	if err := s.tokenRepo.DeleteByHash(ctx, hash); err != nil {
@@ -67,7 +67,7 @@ func (s *AuthService) Refresh(ctx context.Context, req *model.RefreshRequest) (*
 
 	user, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		return nil, model.NewAppError(model.ErrUnauthorized, "user not found")
+		return nil, model.NewAppError(model.ErrUnauthorized, "Пользователь не найден")
 	}
 
 	return s.generateTokenPair(ctx, user)
@@ -110,23 +110,23 @@ func (s *AuthService) generateTokenPair(ctx context.Context, user *model.User) (
 func (s *AuthService) ParseAccessToken(tokenStr string) (uuid.UUID, string, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, model.NewAppError(model.ErrUnauthorized, "invalid token signing method")
+			return nil, model.NewAppError(model.ErrUnauthorized, "Недействительный метод подписи токена")
 		}
 		return s.jwtSecret, nil
 	})
 	if err != nil {
-		return uuid.Nil, "", model.NewAppError(model.ErrUnauthorized, "invalid or expired token")
+		return uuid.Nil, "", model.NewAppError(model.ErrUnauthorized, "Недействительный или истёкший токен")
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return uuid.Nil, "", model.NewAppError(model.ErrUnauthorized, "invalid token")
+		return uuid.Nil, "", model.NewAppError(model.ErrUnauthorized, "Недействительный токен")
 	}
 
 	sub, _ := claims.GetSubject()
 	userID, err := uuid.Parse(sub)
 	if err != nil {
-		return uuid.Nil, "", model.NewAppError(model.ErrUnauthorized, "invalid token subject")
+		return uuid.Nil, "", model.NewAppError(model.ErrUnauthorized, "Недействительный субъект токена")
 	}
 
 	role, _ := claims["role"].(string)

@@ -36,7 +36,7 @@ func (r *CreditorRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.
 		 FROM creditors WHERE id = $1 AND is_deleted = false`, id,
 	).Scan(&c.ID, &c.Name, &c.Phone, &c.Notes, &c.TotalDebt, &c.IsDeleted, &c.CreatedAt, &c.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "creditor not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Кредитор не найден")
 	}
 	return c, err
 }
@@ -81,7 +81,7 @@ func (r *CreditorRepository) Update(ctx context.Context, c *model.Creditor) erro
 		c.Name, c.Phone, c.Notes, c.ID,
 	).Scan(&c.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return model.NewAppError(model.ErrNotFound, "creditor not found")
+		return model.NewAppError(model.ErrNotFound, "Кредитор не найден")
 	}
 	return err
 }
@@ -95,7 +95,7 @@ func (r *CreditorRepository) SoftDelete(ctx context.Context, id uuid.UUID) error
 		return err
 	}
 	if tag.RowsAffected() == 0 {
-		return model.NewAppError(model.ErrNotFound, "creditor not found")
+		return model.NewAppError(model.ErrNotFound, "Кредитор не найден")
 	}
 	return nil
 }

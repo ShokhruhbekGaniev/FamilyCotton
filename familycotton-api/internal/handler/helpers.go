@@ -41,7 +41,7 @@ func respondError(w http.ResponseWriter, err error) {
 	}
 	slog.Error("unhandled error", "error", err)
 	respondJSON(w, http.StatusInternalServerError, model.ErrorResponse{
-		Error: model.ErrorBody{Code: "INTERNAL_ERROR", Message: "internal server error"},
+		Error: model.ErrorBody{Code: "INTERNAL_ERROR", Message: "Внутренняя ошибка сервера"},
 	})
 }
 
@@ -82,7 +82,7 @@ func mapErrToCode(err error) string {
 func decodeJSON(r *http.Request, v any) error {
 	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(v); err != nil {
-		return model.NewAppError(model.ErrValidation, "invalid JSON body")
+		return model.NewAppError(model.ErrValidation, "Некорректный формат JSON")
 	}
 	return nil
 }

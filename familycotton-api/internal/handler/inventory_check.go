@@ -37,7 +37,7 @@ func (h *InventoryCheckHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *InventoryCheckHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid inventory check id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID инвентаризации"))
 		return
 	}
 	var req model.UpdateInventoryCheckRequest

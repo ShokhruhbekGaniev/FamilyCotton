@@ -40,7 +40,7 @@ func (h *ProductHandler) List(w http.ResponseWriter, r *http.Request) {
 func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid product id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID товара"))
 		return
 	}
 	product, err := h.service.GetByID(r.Context(), id)
@@ -68,7 +68,7 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid product id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID товара"))
 		return
 	}
 	var req model.UpdateProductRequest
@@ -87,7 +87,7 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid product id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID товара"))
 		return
 	}
 	if err := h.service.Delete(r.Context(), id); err != nil {

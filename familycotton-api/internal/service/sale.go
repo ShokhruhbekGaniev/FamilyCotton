@@ -46,7 +46,7 @@ func (s *SaleService) Create(ctx context.Context, userID uuid.UUID, req *model.C
 		return nil, err
 	}
 	if shift == nil {
-		return nil, model.NewAppError(model.ErrValidation, "no open shift")
+		return nil, model.NewAppError(model.ErrValidation, "Нет открытой смены")
 	}
 
 	tx, err := s.pool.Begin(ctx)
@@ -65,7 +65,7 @@ func (s *SaleService) Create(ctx context.Context, userID uuid.UUID, req *model.C
 			return nil, err
 		}
 		if product.QtyShop < ri.Quantity {
-			return nil, model.NewAppError(model.ErrValidation, "insufficient stock for product "+product.Name)
+			return nil, model.NewAppError(model.ErrValidation, "Недостаточно товара на складе: "+product.Name)
 		}
 
 		subtotal := ri.UnitPrice.Mul(decimal.NewFromInt(int64(ri.Quantity)))
@@ -85,23 +85,41 @@ func (s *SaleService) Create(ctx context.Context, userID uuid.UUID, req *model.C
 		}
 	}
 
+	// Apply discount.
+	var discountAmount decimal.Decimal
+	switch req.DiscountType {
+	case "percent":
+		discountAmount = totalAmount.Mul(req.DiscountValue).Div(decimal.NewFromInt(100)).Round(2)
+	case "fixed":
+		discountAmount = req.DiscountValue
+	default:
+		discountAmount = decimal.Zero
+	}
+	if discountAmount.GreaterThan(totalAmount) {
+		return nil, model.NewAppError(model.ErrValidation, "Скидка не может превышать сумму заказа")
+	}
+	totalAmount = totalAmount.Sub(discountAmount)
+
 	// Validate payment split.
 	paidTotal := req.PaidCash.Add(req.PaidTerminal).Add(req.PaidOnline).Add(req.PaidDebt)
 	if !paidTotal.Equal(totalAmount) {
-		return nil, model.NewAppError(model.ErrValidation, "payment amounts must equal total_amount")
+		return nil, model.NewAppError(model.ErrValidation, "Сумма оплат должна равняться итоговой сумме")
 	}
 
 	// Create sale.
 	sale := &model.Sale{
-		ID:           uuid.New(),
-		ShiftID:      shift.ID,
-		ClientID:     req.ClientID,
-		TotalAmount:  totalAmount,
-		PaidCash:     req.PaidCash,
-		PaidTerminal: req.PaidTerminal,
-		PaidOnline:   req.PaidOnline,
-		PaidDebt:     req.PaidDebt,
-		CreatedBy:    userID,
+		ID:             uuid.New(),
+		ShiftID:        shift.ID,
+		ClientID:       req.ClientID,
+		TotalAmount:    totalAmount,
+		DiscountType:   req.DiscountType,
+		DiscountValue:  req.DiscountValue,
+		DiscountAmount: discountAmount,
+		PaidCash:       req.PaidCash,
+		PaidTerminal:   req.PaidTerminal,
+		PaidOnline:     req.PaidOnline,
+		PaidDebt:       req.PaidDebt,
+		CreatedBy:      userID,
 	}
 
 	if err := s.saleRepo.CreateSale(ctx, tx, sale); err != nil {
@@ -131,7 +149,7 @@ func (s *SaleService) GetByID(ctx context.Context, id uuid.UUID) (*model.Sale, e
 	return s.saleRepo.GetByID(ctx, id)
 }
 
-func (s *SaleService) List(ctx context.Context, shiftID, clientID *uuid.UUID, page, limit int) ([]model.Sale, int, error) {
+func (s *SaleService) List(ctx context.Context, shiftID, clientID *uuid.UUID, page, limit int) ([]model.SaleListItem, int, error) {
 	return s.saleRepo.List(ctx, shiftID, clientID, page, limit)
 }
 
@@ -148,7 +166,7 @@ func (s *SaleService) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	if shift.Status != "open" {
-		return model.NewAppError(model.ErrForbidden, "cannot delete sale in a closed shift")
+		return model.NewAppError(model.ErrForbidden, "Нельзя удалить продажу в закрытой смене")
 	}
 
 	// 3. Check that the sale has no returns.
@@ -157,7 +175,7 @@ func (s *SaleService) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	if hasReturns {
-		return model.NewAppError(model.ErrConflict, "cannot delete sale with returns")
+		return model.NewAppError(model.ErrConflict, "Нельзя удалить продажу с возвратами")
 	}
 
 	// 4. Begin transaction.

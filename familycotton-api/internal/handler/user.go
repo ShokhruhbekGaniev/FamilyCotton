@@ -47,7 +47,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid user id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID пользователя"))
 		return
 	}
 
@@ -69,7 +69,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid user id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID пользователя"))
 		return
 	}
 

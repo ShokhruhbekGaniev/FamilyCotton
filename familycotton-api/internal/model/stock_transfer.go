@@ -23,10 +23,10 @@ type CreateStockTransferRequest struct {
 
 func (r *CreateStockTransferRequest) Validate() error {
 	if r.Direction != "warehouse_to_shop" && r.Direction != "shop_to_warehouse" {
-		return NewAppError(ErrValidation, "direction must be 'warehouse_to_shop' or 'shop_to_warehouse'")
+		return NewAppError(ErrValidation, "Направление должно быть 'warehouse_to_shop' или 'shop_to_warehouse'")
 	}
 	if r.Quantity <= 0 {
-		return NewAppError(ErrValidation, "quantity must be positive")
+		return NewAppError(ErrValidation, "Количество должно быть положительным")
 	}
 	return nil
 }

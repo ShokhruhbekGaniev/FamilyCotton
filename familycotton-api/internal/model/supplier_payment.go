@@ -30,14 +30,14 @@ type CreateSupplierPaymentRequest struct {
 
 func (r *CreateSupplierPaymentRequest) Validate() error {
 	if r.PaymentType != "money" && r.PaymentType != "product_return" {
-		return NewAppError(ErrValidation, "payment_type must be 'money' or 'product_return'")
+		return NewAppError(ErrValidation, "Тип оплаты должен быть 'money' или 'product_return'")
 	}
 	if r.PaymentType == "money" && r.Amount.LessThanOrEqual(decimal.Zero) {
-		return NewAppError(ErrValidation, "amount must be positive for money payment")
+		return NewAppError(ErrValidation, "Сумма должна быть положительной для денежной оплаты")
 	}
 	if r.PaymentType == "product_return" {
 		if r.ReturnedProductID == nil || r.ReturnedQty == nil || *r.ReturnedQty <= 0 {
-			return NewAppError(ErrValidation, "returned_product_id and returned_qty required for product_return")
+			return NewAppError(ErrValidation, "Для возврата товара необходимо указать товар и количество")
 		}
 	}
 	return nil

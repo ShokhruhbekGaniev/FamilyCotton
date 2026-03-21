@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shopspring/decimal"
 
 	"github.com/familycotton/api/internal/model"
 )
@@ -22,10 +23,11 @@ func NewSaleRepository(db *pgxpool.Pool) *SaleRepository {
 
 func (r *SaleRepository) CreateSale(ctx context.Context, tx DBTX, s *model.Sale) error {
 	return tx.QueryRow(ctx,
-		`INSERT INTO sales (id, shift_id, client_id, total_amount, paid_cash, paid_terminal, paid_online, paid_debt, created_by)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		`INSERT INTO sales (id, shift_id, client_id, total_amount, discount_type, discount_value, discount_amount, paid_cash, paid_terminal, paid_online, paid_debt, created_by)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		 RETURNING created_at`,
 		s.ID, s.ShiftID, s.ClientID, s.TotalAmount,
+		s.DiscountType, s.DiscountValue, s.DiscountAmount,
 		s.PaidCash, s.PaidTerminal, s.PaidOnline, s.PaidDebt, s.CreatedBy,
 	).Scan(&s.CreatedAt)
 }
@@ -42,26 +44,30 @@ func (r *SaleRepository) CreateSaleItem(ctx context.Context, tx DBTX, item *mode
 func (r *SaleRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Sale, error) {
 	s := &model.Sale{}
 	err := r.db.QueryRow(ctx,
-		`SELECT s.id, s.shift_id, s.client_id, s.total_amount, s.paid_cash, s.paid_terminal,
-		        s.paid_online, s.paid_debt, s.created_by, s.created_at,
-		        u.name, c.name
+		`SELECT s.id, s.shift_id, s.client_id, s.total_amount,
+		        s.discount_type, s.discount_value, s.discount_amount,
+		        s.paid_cash, s.paid_terminal, s.paid_online, s.paid_debt,
+		        s.created_by, s.created_at, u.name, c.name
 		 FROM sales s
 		 JOIN users u ON u.id = s.created_by
 		 LEFT JOIN clients c ON c.id = s.client_id
 		 WHERE s.id = $1`, id,
 	).Scan(&s.ID, &s.ShiftID, &s.ClientID, &s.TotalAmount,
+		&s.DiscountType, &s.DiscountValue, &s.DiscountAmount,
 		&s.PaidCash, &s.PaidTerminal, &s.PaidOnline, &s.PaidDebt,
 		&s.CreatedBy, &s.CreatedAt, &s.CreatedByName, &s.ClientName)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "sale not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Продажа не найдена")
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	// Load items with product names.
+	// Load items with product names and returned quantities.
 	rows, err := r.db.Query(ctx,
-		`SELECT si.id, si.sale_id, si.product_id, p.name, si.quantity, si.unit_price, si.subtotal
+		`SELECT si.id, si.sale_id, si.product_id, p.name, si.quantity,
+		        COALESCE((SELECT SUM(sr.quantity) FROM sale_returns sr WHERE sr.sale_item_id = si.id), 0),
+		        si.unit_price, si.subtotal
 		 FROM sale_items si
 		 JOIN products p ON p.id = si.product_id
 		 WHERE si.sale_id = $1`, id,
@@ -74,7 +80,7 @@ func (r *SaleRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Sale
 	for rows.Next() {
 		var item model.SaleItem
 		if err := rows.Scan(&item.ID, &item.SaleID, &item.ProductID, &item.ProductName,
-			&item.Quantity, &item.UnitPrice, &item.Subtotal); err != nil {
+			&item.Quantity, &item.ReturnedQty, &item.UnitPrice, &item.Subtotal); err != nil {
 			return nil, err
 		}
 		s.Items = append(s.Items, item)
@@ -82,7 +88,7 @@ func (r *SaleRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Sale
 	return s, rows.Err()
 }
 
-func (r *SaleRepository) List(ctx context.Context, shiftID *uuid.UUID, clientID *uuid.UUID, page, limit int) ([]model.Sale, int, error) {
+func (r *SaleRepository) List(ctx context.Context, shiftID *uuid.UUID, clientID *uuid.UUID, page, limit int) ([]model.SaleListItem, int, error) {
 	where := ""
 	var args []any
 	idx := 1
@@ -107,11 +113,12 @@ func (r *SaleRepository) List(ctx context.Context, shiftID *uuid.UUID, clientID 
 
 	args = append(args, limit, (page-1)*limit)
 	listQ := fmt.Sprintf(
-		`SELECT s.id, s.shift_id, s.client_id, s.total_amount, s.paid_cash, s.paid_terminal,
-		        s.paid_online, s.paid_debt, s.created_by, s.created_at,
-		        u.name
+		`SELECT s.id, s.shift_id, s.client_id, s.total_amount,
+		        s.paid_cash, s.paid_terminal, s.paid_online, s.paid_debt,
+		        s.created_by, s.created_at, u.name, c.name
 		 FROM sales s
 		 JOIN users u ON u.id = s.created_by
+		 LEFT JOIN clients c ON c.id = s.client_id
 		 WHERE 1=1 %s
 		 ORDER BY s.created_at DESC LIMIT $%d OFFSET $%d`,
 		where, idx, idx+1,
@@ -123,14 +130,17 @@ func (r *SaleRepository) List(ctx context.Context, shiftID *uuid.UUID, clientID 
 	}
 	defer rows.Close()
 
-	var sales []model.Sale
+	var sales []model.SaleListItem
 	for rows.Next() {
-		var s model.Sale
-		if err := rows.Scan(&s.ID, &s.ShiftID, &s.ClientID, &s.TotalAmount,
-			&s.PaidCash, &s.PaidTerminal, &s.PaidOnline, &s.PaidDebt,
-			&s.CreatedBy, &s.CreatedAt, &s.CreatedByName); err != nil {
+		var s model.SaleListItem
+		var totalAmount, paidCash, paidTerminal, paidOnline, paidDebt decimal.Decimal
+		if err := rows.Scan(&s.ID, &s.ShiftID, &s.ClientID, &totalAmount,
+			&paidCash, &paidTerminal, &paidOnline, &paidDebt,
+			&s.CreatedBy, &s.CreatedAt, &s.CreatedByName, &s.ClientName); err != nil {
 			return nil, 0, err
 		}
+		s.TotalAmount = totalAmount.String()
+		s.PaymentType = model.ComputePaymentType(paidCash, paidTerminal, paidOnline, paidDebt)
 		sales = append(sales, s)
 	}
 	if err := rows.Err(); err != nil {
@@ -140,14 +150,16 @@ func (r *SaleRepository) List(ctx context.Context, shiftID *uuid.UUID, clientID 
 	// Load items for all sales in one query.
 	if len(sales) > 0 {
 		saleIDs := make([]uuid.UUID, len(sales))
-		saleMap := make(map[uuid.UUID]*model.Sale, len(sales))
+		saleMap := make(map[uuid.UUID]*model.SaleListItem, len(sales))
 		for i := range sales {
 			saleIDs[i] = sales[i].ID
 			saleMap[sales[i].ID] = &sales[i]
 		}
 
 		itemRows, err := r.db.Query(ctx,
-			`SELECT si.id, si.sale_id, si.product_id, p.name, si.quantity, si.unit_price, si.subtotal
+			`SELECT si.id, si.sale_id, si.product_id, p.name, si.quantity,
+			        COALESCE((SELECT SUM(sr.quantity) FROM sale_returns sr WHERE sr.sale_item_id = si.id), 0),
+			        si.unit_price, si.subtotal
 			 FROM sale_items si
 			 JOIN products p ON p.id = si.product_id
 			 WHERE si.sale_id = ANY($1)`, saleIDs,
@@ -160,7 +172,7 @@ func (r *SaleRepository) List(ctx context.Context, shiftID *uuid.UUID, clientID 
 		for itemRows.Next() {
 			var item model.SaleItem
 			if err := itemRows.Scan(&item.ID, &item.SaleID, &item.ProductID, &item.ProductName,
-				&item.Quantity, &item.UnitPrice, &item.Subtotal); err != nil {
+				&item.Quantity, &item.ReturnedQty, &item.UnitPrice, &item.Subtotal); err != nil {
 				return nil, 0, err
 			}
 			if sale, ok := saleMap[item.SaleID]; ok {
@@ -183,7 +195,7 @@ func (r *SaleRepository) GetSaleItemByID(ctx context.Context, id uuid.UUID) (*mo
 		 FROM sale_items WHERE id = $1`, id,
 	).Scan(&item.ID, &item.SaleID, &item.ProductID, &item.Quantity, &item.UnitPrice, &item.Subtotal)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "sale item not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Позиция продажи не найдена")
 	}
 	return item, err
 }

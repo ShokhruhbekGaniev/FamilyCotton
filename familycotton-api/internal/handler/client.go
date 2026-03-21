@@ -31,7 +31,7 @@ func (h *ClientHandler) List(w http.ResponseWriter, r *http.Request) {
 func (h *ClientHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid client id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID клиента"))
 		return
 	}
 	client, err := h.service.GetByID(r.Context(), id)
@@ -59,7 +59,7 @@ func (h *ClientHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid client id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID клиента"))
 		return
 	}
 	var req model.UpdateClientRequest
@@ -78,7 +78,7 @@ func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *ClientHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid client id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID клиента"))
 		return
 	}
 	if err := h.service.Delete(r.Context(), id); err != nil {

@@ -7,10 +7,10 @@ type LoginRequest struct {
 
 func (r *LoginRequest) Validate() error {
 	if r.Login == "" {
-		return NewAppError(ErrValidation, "login is required")
+		return NewAppError(ErrValidation, "Логин обязателен")
 	}
 	if r.Password == "" {
-		return NewAppError(ErrValidation, "password is required")
+		return NewAppError(ErrValidation, "Пароль обязателен")
 	}
 	return nil
 }
@@ -21,7 +21,7 @@ type RefreshRequest struct {
 
 func (r *RefreshRequest) Validate() error {
 	if r.RefreshToken == "" {
-		return NewAppError(ErrValidation, "refresh_token is required")
+		return NewAppError(ErrValidation, "Токен обновления обязателен")
 	}
 	return nil
 }

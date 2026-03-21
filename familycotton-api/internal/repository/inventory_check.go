@@ -44,7 +44,7 @@ func (r *InventoryCheckRepository) GetByID(ctx context.Context, id uuid.UUID) (*
 		 FROM inventory_checks WHERE id = $1`, id,
 	).Scan(&ic.ID, &ic.Location, &ic.CheckedBy, &ic.Status, &ic.CreatedAt, &ic.CompletedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "inventory check not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Инвентаризация не найдена")
 	}
 	if err != nil {
 		return nil, err

@@ -36,27 +36,27 @@ type CreatePurchaseOrderItemRequest struct {
 }
 
 type CreatePurchaseOrderRequest struct {
-	SupplierID uuid.UUID                       `json:"supplier_id"`
+	SupplierID uuid.UUID                        `json:"supplier_id"`
 	Items      []CreatePurchaseOrderItemRequest `json:"items"`
 	PaidAmount decimal.Decimal                  `json:"paid_amount"`
 }
 
 func (r *CreatePurchaseOrderRequest) Validate() error {
 	if len(r.Items) == 0 {
-		return NewAppError(ErrValidation, "at least one item is required")
+		return NewAppError(ErrValidation, "Необходимо добавить хотя бы один товар")
 	}
 	if r.PaidAmount.IsNegative() {
-		return NewAppError(ErrValidation, "paid_amount cannot be negative")
+		return NewAppError(ErrValidation, "Сумма оплаты не может быть отрицательной")
 	}
 	for _, item := range r.Items {
 		if item.Quantity <= 0 {
-			return NewAppError(ErrValidation, "item quantity must be positive")
+			return NewAppError(ErrValidation, "Количество товара должно быть положительным")
 		}
 		if item.UnitCost.IsNegative() {
-			return NewAppError(ErrValidation, "unit_cost cannot be negative")
+			return NewAppError(ErrValidation, "Себестоимость не может быть отрицательной")
 		}
 		if item.Destination != "shop" && item.Destination != "warehouse" {
-			return NewAppError(ErrValidation, "destination must be 'shop' or 'warehouse'")
+			return NewAppError(ErrValidation, "Место назначения должно быть 'shop' или 'warehouse'")
 		}
 	}
 	return nil

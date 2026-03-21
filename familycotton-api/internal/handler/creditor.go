@@ -31,7 +31,7 @@ func (h *CreditorHandler) List(w http.ResponseWriter, r *http.Request) {
 func (h *CreditorHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid creditor id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID кредитора"))
 		return
 	}
 	creditor, err := h.service.GetByID(r.Context(), id)
@@ -59,7 +59,7 @@ func (h *CreditorHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *CreditorHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid creditor id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID кредитора"))
 		return
 	}
 	var req model.UpdateCreditorRequest
@@ -78,7 +78,7 @@ func (h *CreditorHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *CreditorHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid creditor id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID кредитора"))
 		return
 	}
 	if err := h.service.Delete(r.Context(), id); err != nil {

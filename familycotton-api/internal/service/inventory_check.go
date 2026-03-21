@@ -106,7 +106,7 @@ func (s *InventoryCheckService) Update(ctx context.Context, id uuid.UUID, req *m
 
 		for _, item := range items {
 			if item.ActualQty == nil {
-				return nil, model.NewAppError(model.ErrValidation, "all items must have actual_qty set before completing")
+				return nil, model.NewAppError(model.ErrValidation, "Все позиции должны иметь фактическое количество перед завершением")
 			}
 		}
 

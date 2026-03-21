@@ -3,7 +3,11 @@ package handler
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+
 	"github.com/familycotton/api/internal/middleware"
+	"github.com/familycotton/api/internal/model"
 	"github.com/familycotton/api/internal/service"
 )
 
@@ -37,6 +41,20 @@ func (h *ShiftHandler) Close(w http.ResponseWriter, r *http.Request) {
 
 func (h *ShiftHandler) Current(w http.ResponseWriter, r *http.Request) {
 	shift, err := h.service.GetCurrent(r.Context())
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	respondSuccess(w, http.StatusOK, shift)
+}
+
+func (h *ShiftHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID смены"))
+		return
+	}
+	shift, err := h.service.GetByID(r.Context(), id)
 	if err != nil {
 		respondError(w, err)
 		return

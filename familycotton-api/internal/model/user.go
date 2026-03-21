@@ -26,16 +26,16 @@ type CreateUserRequest struct {
 
 func (r *CreateUserRequest) Validate() error {
 	if r.Name == "" {
-		return NewAppError(ErrValidation, "name is required")
+		return NewAppError(ErrValidation, "Имя обязательно")
 	}
 	if r.Login == "" {
-		return NewAppError(ErrValidation, "login is required")
+		return NewAppError(ErrValidation, "Логин обязателен")
 	}
 	if len(r.Password) < 6 {
-		return NewAppError(ErrValidation, "password must be at least 6 characters")
+		return NewAppError(ErrValidation, "Пароль должен содержать минимум 6 символов")
 	}
 	if r.Role != "owner" && r.Role != "employee" {
-		return NewAppError(ErrValidation, "role must be 'owner' or 'employee'")
+		return NewAppError(ErrValidation, "Роль должна быть 'owner' или 'employee'")
 	}
 	return nil
 }
@@ -49,16 +49,16 @@ type UpdateUserRequest struct {
 
 func (r *UpdateUserRequest) Validate() error {
 	if r.Name != nil && *r.Name == "" {
-		return NewAppError(ErrValidation, "name cannot be empty")
+		return NewAppError(ErrValidation, "Имя не может быть пустым")
 	}
 	if r.Login != nil && *r.Login == "" {
-		return NewAppError(ErrValidation, "login cannot be empty")
+		return NewAppError(ErrValidation, "Логин не может быть пустым")
 	}
 	if r.Password != nil && len(*r.Password) < 6 {
-		return NewAppError(ErrValidation, "password must be at least 6 characters")
+		return NewAppError(ErrValidation, "Пароль должен содержать минимум 6 символов")
 	}
 	if r.Role != nil && *r.Role != "owner" && *r.Role != "employee" {
-		return NewAppError(ErrValidation, "role must be 'owner' or 'employee'")
+		return NewAppError(ErrValidation, "Роль должна быть 'owner' или 'employee'")
 	}
 	return nil
 }

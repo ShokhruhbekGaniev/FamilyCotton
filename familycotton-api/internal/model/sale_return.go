@@ -30,14 +30,14 @@ type CreateSaleReturnRequest struct {
 
 func (r *CreateSaleReturnRequest) Validate() error {
 	if r.Quantity <= 0 {
-		return NewAppError(ErrValidation, "quantity must be positive")
+		return NewAppError(ErrValidation, "Количество должно быть положительным")
 	}
 	validTypes := map[string]bool{"full": true, "exchange": true, "exchange_diff": true}
 	if !validTypes[r.ReturnType] {
-		return NewAppError(ErrValidation, "return_type must be 'full', 'exchange', or 'exchange_diff'")
+		return NewAppError(ErrValidation, "Тип возврата должен быть 'full', 'exchange' или 'exchange_diff'")
 	}
 	if (r.ReturnType == "exchange" || r.ReturnType == "exchange_diff") && r.NewProductID == nil {
-		return NewAppError(ErrValidation, "new_product_id is required for exchange returns")
+		return NewAppError(ErrValidation, "Для обмена необходимо указать новый товар")
 	}
 	return nil
 }

@@ -29,7 +29,7 @@ func (r *UserRepository) Create(ctx context.Context, u *model.User) error {
 	).Scan(&u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		if isDuplicateKey(err) {
-			return model.NewAppError(model.ErrConflict, "login already exists")
+			return model.NewAppError(model.ErrConflict, "Пользователь с таким логином уже существует")
 		}
 		return err
 	}
@@ -43,7 +43,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.User
 		 FROM users WHERE id = $1 AND is_deleted = false`, id,
 	).Scan(&u.ID, &u.Name, &u.Login, &u.PasswordHash, &u.Role, &u.IsDeleted, &u.CreatedAt, &u.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "user not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Пользователь не найден")
 	}
 	return u, err
 }
@@ -55,7 +55,7 @@ func (r *UserRepository) GetByLogin(ctx context.Context, login string) (*model.U
 		 FROM users WHERE login = $1 AND is_deleted = false`, login,
 	).Scan(&u.ID, &u.Name, &u.Login, &u.PasswordHash, &u.Role, &u.IsDeleted, &u.CreatedAt, &u.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, model.NewAppError(model.ErrNotFound, "user not found")
+		return nil, model.NewAppError(model.ErrNotFound, "Пользователь не найден")
 	}
 	return u, err
 }
@@ -90,10 +90,10 @@ func (r *UserRepository) Update(ctx context.Context, u *model.User) error {
 	).Scan(&u.UpdatedAt)
 	if err != nil {
 		if isDuplicateKey(err) {
-			return model.NewAppError(model.ErrConflict, "login already exists")
+			return model.NewAppError(model.ErrConflict, "Пользователь с таким логином уже существует")
 		}
 		if errors.Is(err, pgx.ErrNoRows) {
-			return model.NewAppError(model.ErrNotFound, "user not found")
+			return model.NewAppError(model.ErrNotFound, "Пользователь не найден")
 		}
 		return err
 	}
@@ -108,7 +108,7 @@ func (r *UserRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	if tag.RowsAffected() == 0 {
-		return model.NewAppError(model.ErrNotFound, "user not found")
+		return model.NewAppError(model.ErrNotFound, "Пользователь не найден")
 	}
 	return nil
 }

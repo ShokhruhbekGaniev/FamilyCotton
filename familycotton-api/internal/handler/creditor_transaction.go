@@ -37,7 +37,7 @@ func (h *CreditorTransactionHandler) Create(w http.ResponseWriter, r *http.Reque
 func (h *CreditorTransactionHandler) List(w http.ResponseWriter, r *http.Request) {
 	creditorID, err := uuid.Parse(chi.URLParam(r, "creditorId"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid creditor id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID кредитора"))
 		return
 	}
 	page, limit := paginationParams(r)

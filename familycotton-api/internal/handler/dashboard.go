@@ -20,15 +20,15 @@ func parseDateRange(r *http.Request) (time.Time, time.Time, error) {
 	fromStr := r.URL.Query().Get("from")
 	toStr := r.URL.Query().Get("to")
 	if fromStr == "" || toStr == "" {
-		return time.Time{}, time.Time{}, model.NewAppError(model.ErrValidation, "from and to query params are required")
+		return time.Time{}, time.Time{}, model.NewAppError(model.ErrValidation, "Параметры from и to обязательны")
 	}
 	from, err := time.Parse("2006-01-02", fromStr)
 	if err != nil {
-		return time.Time{}, time.Time{}, model.NewAppError(model.ErrValidation, "invalid from date format, use YYYY-MM-DD")
+		return time.Time{}, time.Time{}, model.NewAppError(model.ErrValidation, "Некорректный формат даты from, используйте YYYY-MM-DD")
 	}
 	to, err := time.Parse("2006-01-02", toStr)
 	if err != nil {
-		return time.Time{}, time.Time{}, model.NewAppError(model.ErrValidation, "invalid to date format, use YYYY-MM-DD")
+		return time.Time{}, time.Time{}, model.NewAppError(model.ErrValidation, "Некорректный формат даты to, используйте YYYY-MM-DD")
 	}
 	// Set to end of day.
 	to = to.Add(24*time.Hour - time.Nanosecond)

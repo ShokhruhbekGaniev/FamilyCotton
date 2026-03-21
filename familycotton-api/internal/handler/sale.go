@@ -37,7 +37,7 @@ func (h *SaleHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *SaleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid sale id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID продажи"))
 		return
 	}
 	sale, err := h.service.GetByID(r.Context(), id)
@@ -72,7 +72,7 @@ func (h *SaleHandler) List(w http.ResponseWriter, r *http.Request) {
 func (h *SaleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		respondError(w, model.NewAppError(model.ErrValidation, "invalid sale id"))
+		respondError(w, model.NewAppError(model.ErrValidation, "Некорректный ID продажи"))
 		return
 	}
 	if err := h.service.Delete(r.Context(), id); err != nil {
