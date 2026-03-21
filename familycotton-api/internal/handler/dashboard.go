@@ -16,22 +16,26 @@ func NewDashboardHandler(svc *service.DashboardService) *DashboardHandler {
 	return &DashboardHandler{svc: svc}
 }
 
+// Ташкент UTC+5 — бизнес работает в этой таймзоне.
+var tashkentTZ = time.FixedZone("Asia/Tashkent", 5*60*60)
+
 func parseDateRange(r *http.Request) (time.Time, time.Time, error) {
 	fromStr := r.URL.Query().Get("from")
 	toStr := r.URL.Query().Get("to")
 	if fromStr == "" || toStr == "" {
 		return time.Time{}, time.Time{}, model.NewAppError(model.ErrValidation, "Параметры from и to обязательны")
 	}
-	from, err := time.Parse("2006-01-02", fromStr)
+	fromDate, err := time.Parse("2006-01-02", fromStr)
 	if err != nil {
 		return time.Time{}, time.Time{}, model.NewAppError(model.ErrValidation, "Некорректный формат даты from, используйте YYYY-MM-DD")
 	}
-	to, err := time.Parse("2006-01-02", toStr)
+	toDate, err := time.Parse("2006-01-02", toStr)
 	if err != nil {
 		return time.Time{}, time.Time{}, model.NewAppError(model.ErrValidation, "Некорректный формат даты to, используйте YYYY-MM-DD")
 	}
-	// Set to end of day.
-	to = to.Add(24*time.Hour - time.Nanosecond)
+	// Интерпретируем даты в таймзоне Ташкента, затем конвертируем в UTC для SQL-запроса.
+	from := time.Date(fromDate.Year(), fromDate.Month(), fromDate.Day(), 0, 0, 0, 0, tashkentTZ).UTC()
+	to := time.Date(toDate.Year(), toDate.Month(), toDate.Day(), 23, 59, 59, int(time.Second-time.Nanosecond), tashkentTZ).UTC()
 	return from, to, nil
 }
 
