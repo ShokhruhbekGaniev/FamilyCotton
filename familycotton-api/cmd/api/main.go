@@ -60,18 +60,21 @@ func main() {
 	userHandler := handler.NewUserHandler(userService)
 
 	// Phase 2 repositories.
+	brandRepo := repository.NewBrandRepository(pool)
 	supplierRepo := repository.NewSupplierRepository(pool)
 	clientRepo := repository.NewClientRepository(pool)
 	creditorRepo := repository.NewCreditorRepository(pool)
 	productRepo := repository.NewProductRepository(pool)
 
 	// Phase 2 services.
+	brandService := service.NewBrandService(brandRepo)
 	supplierService := service.NewSupplierService(supplierRepo)
 	clientService := service.NewClientService(clientRepo)
 	creditorService := service.NewCreditorService(creditorRepo)
 	productService := service.NewProductService(productRepo)
 
 	// Phase 2 handlers.
+	brandHandler := handler.NewBrandHandler(brandService)
 	supplierHandler := handler.NewSupplierHandler(supplierService)
 	clientHandler := handler.NewClientHandler(clientService)
 	creditorHandler := handler.NewCreditorHandler(creditorService)
@@ -130,7 +133,7 @@ func main() {
 	dashboardHandler := handler.NewDashboardHandler(dashboardService)
 
 	r := router.New(authService, authHandler, userHandler,
-		supplierHandler, clientHandler, creditorHandler, productHandler,
+		brandHandler, supplierHandler, clientHandler, creditorHandler, productHandler,
 		shiftHandler, saleHandler, saleReturnHandler, clientPaymentHandler,
 		purchaseOrderHandler, supplierPaymentHandler, creditorTransactionHandler,
 		stockTransferHandler, inventoryCheckHandler,

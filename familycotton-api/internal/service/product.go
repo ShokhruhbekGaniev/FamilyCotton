@@ -22,14 +22,16 @@ func (s *ProductService) Create(ctx context.Context, req *model.CreateProductReq
 		return nil, err
 	}
 	product := &model.Product{
-		ID:         uuid.New(),
-		SKU:        req.SKU,
-		Name:       req.Name,
-		Brand:      req.Brand,
-		SupplierID: req.SupplierID,
-		PhotoURL:   req.PhotoURL,
-		CostPrice:  req.CostPrice,
-		SellPrice:  req.SellPrice,
+		ID:           uuid.New(),
+		SKU:          req.SKU,
+		Name:         req.Name,
+		BrandID:      req.BrandID,
+		SupplierID:   req.SupplierID,
+		PhotoURL:     req.PhotoURL,
+		CostPrice:    req.CostPrice,
+		SellPrice:    req.SellPrice,
+		QtyShop:      req.QtyShop,
+		QtyWarehouse: req.QtyWarehouse,
 	}
 	if err := s.repo.Create(ctx, product); err != nil {
 		return nil, err
@@ -60,8 +62,8 @@ func (s *ProductService) Update(ctx context.Context, id uuid.UUID, req *model.Up
 	if req.Name != nil {
 		product.Name = *req.Name
 	}
-	if req.Brand != nil {
-		product.Brand = req.Brand
+	if req.BrandID != nil {
+		product.BrandID = req.BrandID
 	}
 	if req.SupplierID != nil {
 		product.SupplierID = req.SupplierID

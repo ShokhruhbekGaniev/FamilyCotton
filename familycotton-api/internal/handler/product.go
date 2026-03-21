@@ -22,7 +22,11 @@ func (h *ProductHandler) List(w http.ResponseWriter, r *http.Request) {
 	page, limit := paginationParams(r)
 	filter := model.ProductFilter{
 		Search: r.URL.Query().Get("search"),
-		Brand:  r.URL.Query().Get("brand"),
+	}
+	if bid := r.URL.Query().Get("brand_id"); bid != "" {
+		if id, err := uuid.Parse(bid); err == nil {
+			filter.BrandID = &id
+		}
 	}
 	if sid := r.URL.Query().Get("supplier_id"); sid != "" {
 		if id, err := uuid.Parse(sid); err == nil {

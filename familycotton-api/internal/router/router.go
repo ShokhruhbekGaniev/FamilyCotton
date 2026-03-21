@@ -12,6 +12,7 @@ func New(
 	authService *service.AuthService,
 	authHandler *handler.AuthHandler,
 	userHandler *handler.UserHandler,
+	brandHandler *handler.BrandHandler,
 	supplierHandler *handler.SupplierHandler,
 	clientHandler *handler.ClientHandler,
 	creditorHandler *handler.CreditorHandler,
@@ -52,6 +53,18 @@ func New(
 				r.Post("/", userHandler.Create)
 				r.Put("/{id}", userHandler.Update)
 				r.Delete("/{id}", userHandler.Delete)
+			})
+
+			// Brands (employee: read only, owner: full CRUD).
+			r.Route("/brands", func(r chi.Router) {
+				r.Get("/", brandHandler.List)
+				r.Get("/{id}", brandHandler.GetByID)
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.RequireRole("owner"))
+					r.Post("/", brandHandler.Create)
+					r.Put("/{id}", brandHandler.Update)
+					r.Delete("/{id}", brandHandler.Delete)
+				})
 			})
 
 			// Suppliers (employee: read only, owner: full CRUD).

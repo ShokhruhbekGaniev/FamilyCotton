@@ -11,7 +11,8 @@ type Product struct {
 	ID           uuid.UUID       `json:"id"`
 	SKU          string          `json:"sku"`
 	Name         string          `json:"name"`
-	Brand        *string         `json:"brand"`
+	BrandID      *uuid.UUID      `json:"brand_id"`
+	BrandName    *string         `json:"brand_name,omitempty"`
 	SupplierID   *uuid.UUID      `json:"supplier_id"`
 	PhotoURL     *string         `json:"photo_url"`
 	CostPrice    decimal.Decimal `json:"cost_price"`
@@ -25,13 +26,15 @@ type Product struct {
 }
 
 type CreateProductRequest struct {
-	SKU        string          `json:"sku"`
-	Name       string          `json:"name"`
-	Brand      *string         `json:"brand"`
-	SupplierID *uuid.UUID      `json:"supplier_id"`
-	PhotoURL   *string         `json:"photo_url"`
-	CostPrice  decimal.Decimal `json:"cost_price"`
-	SellPrice  decimal.Decimal `json:"sell_price"`
+	SKU          string          `json:"sku"`
+	Name         string          `json:"name"`
+	BrandID      *uuid.UUID      `json:"brand_id"`
+	SupplierID   *uuid.UUID      `json:"supplier_id"`
+	PhotoURL     *string         `json:"photo_url"`
+	CostPrice    decimal.Decimal `json:"cost_price"`
+	SellPrice    decimal.Decimal `json:"sell_price"`
+	QtyShop      int             `json:"qty_shop"`
+	QtyWarehouse int             `json:"qty_warehouse"`
 }
 
 func (r *CreateProductRequest) Validate() error {
@@ -47,13 +50,19 @@ func (r *CreateProductRequest) Validate() error {
 	if r.SellPrice.IsNegative() {
 		return NewAppError(ErrValidation, "Цена продажи не может быть отрицательной")
 	}
+	if r.QtyShop < 0 {
+		return NewAppError(ErrValidation, "Количество в магазине не может быть отрицательным")
+	}
+	if r.QtyWarehouse < 0 {
+		return NewAppError(ErrValidation, "Количество на складе не может быть отрицательным")
+	}
 	return nil
 }
 
 type UpdateProductRequest struct {
 	SKU          *string          `json:"sku,omitempty"`
 	Name         *string          `json:"name,omitempty"`
-	Brand        *string          `json:"brand,omitempty"`
+	BrandID      *uuid.UUID       `json:"brand_id,omitempty"`
 	SupplierID   *uuid.UUID       `json:"supplier_id,omitempty"`
 	PhotoURL     *string          `json:"photo_url,omitempty"`
 	CostPrice    *decimal.Decimal `json:"cost_price,omitempty"`
@@ -87,5 +96,5 @@ func (r *UpdateProductRequest) Validate() error {
 type ProductFilter struct {
 	Search     string
 	SupplierID *uuid.UUID
-	Brand      string
+	BrandID    *uuid.UUID
 }
