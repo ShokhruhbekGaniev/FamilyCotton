@@ -78,19 +78,19 @@ func (r *PurchaseOrderRepository) List(ctx context.Context, supplierID *uuid.UUI
 	idx := 1
 
 	if supplierID != nil {
-		where += fmt.Sprintf(" AND supplier_id = $%d", idx)
+		where += fmt.Sprintf(" AND po.supplier_id = $%d", idx)
 		args = append(args, *supplierID)
 		idx++
 	}
 	if status != "" {
-		where += fmt.Sprintf(" AND status = $%d", idx)
+		where += fmt.Sprintf(" AND po.status = $%d", idx)
 		args = append(args, status)
 		idx++
 	}
 
 	var total int
 	err := r.db.QueryRow(ctx,
-		fmt.Sprintf("SELECT COUNT(*) FROM purchase_orders WHERE 1=1 %s", where), args...,
+		fmt.Sprintf("SELECT COUNT(*) FROM purchase_orders po WHERE 1=1 %s", where), args...,
 	).Scan(&total)
 	if err != nil {
 		return nil, 0, err
@@ -99,8 +99,10 @@ func (r *PurchaseOrderRepository) List(ctx context.Context, supplierID *uuid.UUI
 	args = append(args, limit, (page-1)*limit)
 	rows, err := r.db.Query(ctx,
 		fmt.Sprintf(
-			`SELECT id, supplier_id, total_amount, paid_amount, status, created_by, created_at, updated_at
-			 FROM purchase_orders WHERE 1=1 %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d`,
+			`SELECT po.id, po.supplier_id, s.name, po.total_amount, po.paid_amount, po.status, po.created_by, po.created_at, po.updated_at
+			 FROM purchase_orders po
+			 LEFT JOIN suppliers s ON s.id = po.supplier_id
+			 WHERE 1=1 %s ORDER BY po.created_at DESC LIMIT $%d OFFSET $%d`,
 			where, idx, idx+1,
 		), args...,
 	)
@@ -112,7 +114,7 @@ func (r *PurchaseOrderRepository) List(ctx context.Context, supplierID *uuid.UUI
 	var orders []model.PurchaseOrder
 	for rows.Next() {
 		var po model.PurchaseOrder
-		if err := rows.Scan(&po.ID, &po.SupplierID, &po.TotalAmount, &po.PaidAmount,
+		if err := rows.Scan(&po.ID, &po.SupplierID, &po.SupplierName, &po.TotalAmount, &po.PaidAmount,
 			&po.Status, &po.CreatedBy, &po.CreatedAt, &po.UpdatedAt); err != nil {
 			return nil, 0, err
 		}

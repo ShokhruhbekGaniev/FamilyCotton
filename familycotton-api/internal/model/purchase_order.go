@@ -8,15 +8,16 @@ import (
 )
 
 type PurchaseOrder struct {
-	ID          uuid.UUID           `json:"id"`
-	SupplierID  uuid.UUID           `json:"supplier_id"`
-	TotalAmount decimal.Decimal     `json:"total_amount"`
-	PaidAmount  decimal.Decimal     `json:"paid_amount"`
-	Status      string              `json:"status"`
-	CreatedBy   uuid.UUID           `json:"created_by"`
-	CreatedAt   time.Time           `json:"created_at"`
-	UpdatedAt   time.Time           `json:"updated_at"`
-	Items       []PurchaseOrderItem `json:"items,omitempty"`
+	ID           uuid.UUID           `json:"id"`
+	SupplierID   uuid.UUID           `json:"supplier_id"`
+	SupplierName string              `json:"supplier_name,omitempty"`
+	TotalAmount  decimal.Decimal     `json:"total_amount"`
+	PaidAmount   decimal.Decimal     `json:"paid_amount"`
+	Status       string              `json:"status"`
+	CreatedBy    uuid.UUID           `json:"created_by"`
+	CreatedAt    time.Time           `json:"created_at"`
+	UpdatedAt    time.Time           `json:"updated_at"`
+	Items        []PurchaseOrderItem `json:"items,omitempty"`
 }
 
 type PurchaseOrderItem struct {
