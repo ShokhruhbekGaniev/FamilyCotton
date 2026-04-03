@@ -1,6 +1,8 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 
 	"github.com/familycotton/api/internal/handler"
@@ -35,6 +37,12 @@ func New(
 	r.Use(middleware.Logging)
 
 	r.Route("/api/v1", func(r chi.Router) {
+		// Health check for Docker healthcheck.
+		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("ok"))
+		})
+
 		// Public routes.
 		r.Post("/auth/login", authHandler.Login)
 		r.Post("/auth/refresh", authHandler.Refresh)
