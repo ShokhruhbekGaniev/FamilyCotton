@@ -1,23 +1,91 @@
 name: Deploy API
 
+# PR → tests. Push to main → tests → rsync the source → build and swap on the server (rolls itself back) →
+# public check. No git and no GitHub key on the server.
+# Secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY (restricted familycotton-deploy@github-actions key), VPS_KNOWN_HOSTS (pinned).
+# This repo is public, so are its Actions logs: never print container logs or `compose config` here.
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'familycotton-api/**'
+      - 'deploy/remote-deploy.sh'
+      - '.github/workflows/deploy-api.yml'
   push:
     branches: [main]
     paths:
       - 'familycotton-api/**'
+      - 'deploy/remote-deploy.sh'
+      - '.github/workflows/deploy-api.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: test-${{ github.ref }}
+      cancel-in-progress: true
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          host: 45.130.148.93
-          username: root
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /opt/familycotton
-            git pull origin main
-            cd familycotton-api
-            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+          go-version-file: familycotton-api/go.mod
+          cache-dependency-path: familycotton-api/go.sum
+      - name: Build, vet, test
+        working-directory: familycotton-api
+        run: |
+          go build ./...
+          go vet ./...
+          go test ./...
+      - name: API image builds            # a broken Dockerfile fails here, not on the server
+        run: docker build -q -t ci-check familycotton-api
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    concurrency:
+      group: ${{ github.repository }}-production   # one deploy at a time, never cancelled half way
+      cancel-in-progress: false
+    env:
+      TARGET: ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}
+      SSH_OPTS: -o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -o ConnectTimeout=15 -o ServerAliveInterval=15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authorise (pinned host key)
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          (umask 077; printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519)
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      # The server keeps only what the repo has at this commit, plus its own .env* files (secrets).
+      - name: Ship the source
+        run: |
+          rsync -az --delete --no-owner --no-group -e "ssh $SSH_OPTS" \
+            --exclude='/.git/' --exclude='.env*' \
+            ./ "$TARGET:/opt/familycotton/"
+
+      - name: Build and swap the API (rolls itself back)
+        run: ssh $SSH_OPTS "$TARGET" bash -s -- deploy "$GITHUB_SHA" < deploy/remote-deploy.sh
+
+      - name: Verify the public API, roll back on failure
+        run: |
+          curl -fsS --max-time 15 --retry 5 --retry-delay 3 --retry-connrefused \
+            https://api.familycotton.uz/api/v1/health | grep -q ok && exit 0
+          echo "::error::public verification failed, rolling back"
+          ssh $SSH_OPTS "$TARGET" bash -s -- rollback "$GITHUB_SHA" < deploy/remote-deploy.sh || true
+          exit 1
+
+      - name: Forget the key
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519

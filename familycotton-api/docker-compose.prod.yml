@@ -1,3 +1,7 @@
+# Project name = the directory name it always ran under: keeps the volume familycotton-api_pgdata.
+# Deployed by .github/workflows/deploy-api.yml → deploy/remote-deploy.sh with API_TAG=<commit sha>.
+name: familycotton-api
+
 services:
   db:
     image: postgres:16-alpine
@@ -26,6 +30,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: familycotton-api-api:${API_TAG:-latest}
     container_name: familycotton-api
     env_file:
       - .env.prod
